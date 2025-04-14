@@ -73,7 +73,7 @@ const Hero = () => {
             <div className="relative w-64 h-64 md:w-96 md:h-96 animate-float">
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-2xl"></div>
               <img 
-                src="https://images.unsplash.com/photo-1544717305-2782549b5136?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" 
+                src="../../../attached_assets/profileimage/loch.png" 
                 alt="Lochlann O'Higgins" 
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-2xl border-4 border-white dark:border-slate-700 shadow-xl z-10 relative"
               />
