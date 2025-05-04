@@ -1,23 +1,21 @@
 import { Helmet } from 'react-helmet';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { fadeIn, slideUp } from '@/lib/framerAnimations';
-import { experiences } from '@/data/experience';
-import { education } from '@/data/education';
+import { experiences, educationTimeline as education, certifications } from '@/data/experience';
 import { skills } from '@/data/skills';
-import { FaDownload, FaUser, FaBriefcase, FaGraduationCap, FaCode, FaTrophy } from 'react-icons/fa';
+import { FaDownload, FaUser, FaBriefcase, FaGraduationCap, FaCode, FaTrophy, FaCertificate } from 'react-icons/fa';
 import { achievements } from '@/data/achievements';
 
 const Resume = () => {
-  const handleDownloadCV = () => {
-    // In a real implementation, this would download a PDF file
-    alert("In a real implementation, this would download the CV as a PDF");
-  };
+  // URL for the CV download page
+  const cvDownloadUrl = '/download/cv';
 
   return (
     <>
       <Helmet>
         <title>Resume | Lochlann O'Higgins</title>
-        <meta name="description" content="Professional resume of Lochlann O'Higgins - Web Developer and Designer with experience in WordPress, React, and more." />
+        <meta name="description" content="Professional resume of Lochlann O'Higgins - Web Developer, Designer, and Coach with experience in WordPress, React, and more." />
       </Helmet>
       
       <div className="mt-16 py-16 bg-light dark:bg-dark">
@@ -35,12 +33,13 @@ const Resume = () => {
                   <h1 className="text-3xl md:text-4xl font-space font-bold">Lochlann O'Higgins</h1>
                   <p className="text-xl mt-2 font-light">Website Specialist & Developer</p>
                 </div>
-                <button 
-                  onClick={handleDownloadCV}
+                <Link 
+                  to={cvDownloadUrl}
                   className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 backdrop-blur-sm transition-colors"
+                  target="_blank"
                 >
                   <FaDownload /> Download CV
-                </button>
+                </Link>
               </div>
             </div>
             
@@ -64,7 +63,7 @@ const Resume = () => {
                       <strong className="text-slate-800 dark:text-white">Phone:</strong> (+44) 07469707973
                     </p>
                     <p className="text-slate-600 dark:text-slate-300">
-                      <strong className="text-slate-800 dark:text-white">Age:</strong> 23
+                      <strong className="text-slate-800 dark:text-white">Website:</strong> easywebs.uk
                     </p>
                   </div>
                   <div>
@@ -78,7 +77,7 @@ const Resume = () => {
                 </div>
                 <div className="mt-4">
                   <p className="text-slate-600 dark:text-slate-300">
-                    Growing up I spent a lot of time moving countries and never settling down anywhere. I see myself as an inclusive person who is always eager to learn more while having a strong focus and drive. Passionate about many things and enjoy staying active with various hobbies. I try to have a positive impact on my environment and enjoy seeing others do well and achieve their goals in life.
+                    I'm a developer and coach with a passion for building impactful tech and uplifting communities through sport and innovation. From leading web projects and winning hackathons to coaching table tennis and wheelchair rugby league, I bring energy and adaptability into everything I do.
                   </p>
                 </div>
               </motion.section>
@@ -93,16 +92,41 @@ const Resume = () => {
                   <FaBriefcase className="mr-2 text-primary" /> Professional Experience
                 </h2>
                 <div className="space-y-6">
-                  {experiences.map((exp, index) => (
+                  {experiences.slice(0, 5).map((exp, index) => (
                     <div key={index} className="border-l-2 border-primary pl-4 ml-2">
                       <div className="relative">
                         <div className="absolute -left-[22px] top-1.5 w-4 h-4 rounded-full bg-primary"></div>
                         <h3 className="text-lg font-space font-bold text-slate-800 dark:text-white">{exp.title}</h3>
                         <p className="text-primary dark:text-primary-light">{exp.company} | {exp.date}</p>
                         <p className="mt-2 text-slate-600 dark:text-slate-300">{exp.description}</p>
+                        
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {exp.skills.slice(0, 3).map((skill, skillIndex) => (
+                            <span 
+                              key={skillIndex} 
+                              className="px-2 py-1 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light text-xs"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}
+                  
+                  <div className="text-center">
+                    <a
+                      href="#experience-timeline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = '/experience#experience';
+                      }}
+                      className="inline-block text-primary hover:text-primary-dark transition-colors text-sm font-medium"
+                    >
+                      View Full Experience Timeline →
+                    
+                    </a>
+                  </div>
                 </div>
               </motion.section>
               
@@ -121,9 +145,29 @@ const Resume = () => {
                       <div className="relative">
                         <div className="absolute -left-[22px] top-1.5 w-4 h-4 rounded-full bg-primary"></div>
                         <h3 className="text-lg font-space font-bold text-slate-800 dark:text-white">{edu.title}</h3>
-                        <p className="text-primary dark:text-primary-light">{edu.institution} | {edu.period}</p>
+                        <p className="text-primary dark:text-primary-light">{edu.institution} | {edu.date}</p>
                         <p className="mt-2 text-slate-600 dark:text-slate-300">{edu.description}</p>
                       </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.section>
+              
+              {/* Certifications */}
+              <motion.section 
+                className="mb-10"
+                variants={slideUp}
+                custom={3}
+              >
+                <h2 className="text-2xl font-space font-bold mb-4 text-slate-800 dark:text-white flex items-center">
+                  <FaCertificate className="mr-2 text-primary" /> Certifications
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {certifications.map((cert, index) => (
+                    <div key={index} className="bg-slate-50 dark:bg-slate-700/30 p-4 rounded-lg">
+                      <h3 className="text-lg font-space font-bold text-slate-800 dark:text-white">{cert.title}</h3>
+                      <p className="text-primary dark:text-primary-light text-sm">{cert.issuer} | {cert.date}</p>
+                      <p className="mt-2 text-slate-600 dark:text-slate-300 text-sm">{cert.description}</p>
                     </div>
                   ))}
                 </div>
@@ -133,7 +177,7 @@ const Resume = () => {
               <motion.section 
                 className="mb-10"
                 variants={slideUp}
-                custom={3}
+                custom={4}
               >
                 <h2 className="text-2xl font-space font-bold mb-4 text-slate-800 dark:text-white flex items-center">
                   <FaCode className="mr-2 text-primary" /> Skills
@@ -150,7 +194,7 @@ const Resume = () => {
               {/* Achievements */}
               <motion.section
                 variants={slideUp}
-                custom={4}
+                custom={5}
               >
                 <h2 className="text-2xl font-space font-bold mb-4 text-slate-800 dark:text-white flex items-center">
                   <FaTrophy className="mr-2 text-primary" /> Achievements
@@ -169,6 +213,17 @@ const Resume = () => {
                   ))}
                 </ul>
               </motion.section>
+              
+              {/* Download CV button at bottom */}
+              <div className="mt-10 text-center">
+                <Link 
+                  to={cvDownloadUrl}
+                  className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                  target="_blank"
+                >
+                  <FaDownload className="mr-2" /> Download Complete CV
+                </Link>
+              </div>
             </div>
           </motion.div>
         </div>

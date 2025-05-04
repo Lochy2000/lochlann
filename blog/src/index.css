@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #3b82f6;
+  --primary-light: #60a5fa;
+  --secondary: #8b5cf6;
+  --light: #f9fafb;
+  --dark: #111827;
+  --darker: #0f172a;
+}
+
+/* Reset to prevent inheritance from main site */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  @apply bg-light dark:bg-dark text-slate-800 dark:text-slate-200;
+  font-family: sans-serif;
+  min-height: 100vh;
+  /* Add important to override any inherited styles */
+  overflow-x: hidden !important;
+}
+
+/* Custom styling for the blog */
+.blog-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.glow-effect {
+  transition: all 0.3s ease;
+}
+
+.glow-effect:hover {
+  box-shadow: 0 0 15px var(--primary);
+}
+
+/* Blog-specific header adjustments */
+.blog-header {
+  position: static !important; /* Override any conflicting fixed position */
+  top: 0;
+  z-index: 30; /* Lower than main site's z-index */
+}
+
+/* Blog post styling */
+.blog-post {
+  @apply bg-white dark:bg-slate-800 rounded-xl shadow-md p-6;
+  margin-bottom: 2rem;
+}
+
+.blog-post-title {
+  @apply text-2xl font-bold mb-2 text-slate-900 dark:text-white;
+}
+
+.blog-post-meta {
+  @apply text-sm text-slate-500 dark:text-slate-400 mb-4;
+}
+
+.blog-post-content {
+  @apply text-slate-700 dark:text-slate-300;
+}

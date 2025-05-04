@@ -1,52 +1,82 @@
-import { Switch, Route } from "wouter";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Route,
+  createRoutesFromElements,
+  Outlet,
+  Navigate
+} from "react-router-dom";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import UpgradedHome from "@/pages/UpgradedHome";
 import About from "@/pages/About";
 import Experience from "@/pages/Experience";
 import Portfolio from "@/pages/Portfolio";
-import Blog from "@/pages/Blog";
-import BlogPost from "@/pages/BlogPost";
 import Contact from "@/pages/Contact";
 import Resume from "@/pages/Resume";
+import CV from "@/pages/CV";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import DarkModeToggle from "@/components/layout/DarkModeToggle";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
-function Router() {
+// Layout component that includes header and footer
+const Layout = () => {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/about" component={About} />
-      <Route path="/experience" component={Experience} />
-      <Route path="/portfolio">
-        {(params) => <Portfolio {...params} showAll={true} />}
-      </Route>
-      <Route path="/blog">
-        {(params) => <Blog {...params} showAll={true} />}
-      </Route>
-      <Route path="/blog/:slug" component={BlogPost} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/resume" component={Resume} />
-      <Route component={NotFound} />
-    </Switch>
+    <div className="flex flex-col min-h-screen">
+      <Header />
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+      <Footer />
+      <DarkModeToggle />
+    </div>
   );
-}
+};
+
+// Download page layout without header/footer
+const DownloadLayout = () => {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-grow">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<UpgradedHome />} />
+        <Route path="classic" element={<Home />} />
+        <Route path="about" element={<About />} />
+        <Route path="experience" element={<Experience />} />
+        <Route path="portfolio" element={<Portfolio showAll={true} />} />
+        <Route path="contact" element={<Contact />} />
+        <Route path="resume" element={<Resume />} />
+        <Route path="blog" element={<Navigate to="/blog/" />} />
+        <Route path="blog/*" element={<Navigate to="/blog/" />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+      <Route path="/download" element={<DownloadLayout />}>
+        <Route path="cv" element={<CV />} />
+      </Route>
+    </>
+  )
+);
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow">
-          <Router />
-        </main>
-        <Footer />
-        <DarkModeToggle />
-      </div>
-      <Toaster />
+      <ThemeProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

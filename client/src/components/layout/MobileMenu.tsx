@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getBlogUrl } from '@/lib/blogUrl';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -8,12 +9,13 @@ interface MobileMenuProps {
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
-  const [location] = useLocation();
+  const location = useLocation();
+  const blogUrl = getBlogUrl();
 
   // Close the mobile menu when changing routes
   useEffect(() => {
     if (isOpen) onClose();
-  }, [location, isOpen, onClose]);
+  }, [location.pathname, isOpen, onClose]);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -88,32 +90,32 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
             
             <motion.div className="flex flex-col space-y-6 mt-12">
               <motion.div variants={itemVariants}>
-                <Link href="/" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link to="/" className="text-slate-700 dark:text-white text-lg font-medium">
                   Home
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link href="/about" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link to="/about" className="text-slate-700 dark:text-white text-lg font-medium">
                   About
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link href="/experience" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link to="/experience" className="text-slate-700 dark:text-white text-lg font-medium">
                   Experience
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link href="/portfolio" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link to="/portfolio" className="text-slate-700 dark:text-white text-lg font-medium">
                   Portfolio
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link href="/blog" className="text-slate-700 dark:text-white text-lg font-medium">
+                <a href={blogUrl} className="text-slate-700 dark:text-white text-lg font-medium">
                   Blog
-                </Link>
+                </a>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link href="/contact" className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium text-center block">
+                <Link to="/contact" className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium text-center block">
                   Contact
                 </Link>
               </motion.div>

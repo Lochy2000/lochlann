@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation } from 'react-router-dom';
 import MobileMenu from './MobileMenu';
+import { getBlogUrl } from '@/lib/blogUrl';
 
 const Header = () => {
-  const [location] = useLocation();
+  const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const blogUrl = getBlogUrl();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,7 +29,7 @@ const Header = () => {
   return (
     <header className={headerClasses}>
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2">
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-space font-bold">
             L
           </div>
@@ -37,32 +39,32 @@ const Header = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <Link 
-            href="/" 
-            className={`${location === '/' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-white'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
+            to="/"
+            className={`${location.pathname === '/' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
             Home
           </Link>
           <Link 
-            href="/about" 
-            className={`${location === '/about' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-white'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
+            to="/about"
+            className={`${location.pathname === '/about' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
             About
           </Link>
           <Link 
-            href="/experience" 
-            className={`${location === '/experience' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-white'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
+            to="/experience"
+            className={`${location.pathname === '/experience' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
             Experience
           </Link>
           <Link 
-            href="/portfolio" 
-            className={`${location === '/portfolio' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-white'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
+            to="/portfolio"
+            className={`${location.pathname === '/portfolio' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
             Portfolio
           </Link>
-          <Link 
-            href="/blog" 
-            className={`${location === '/blog' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-white'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
+          <a 
+            href={blogUrl}
+            className={`${location.pathname.startsWith('/blog') ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
             Blog
-          </Link>
+          </a>
           <Link 
-            href="/contact" 
+            to="/contact" 
             className="px-5 py-2 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium hover:shadow-lg transition-all glow-effect">
             Contact
           </Link>

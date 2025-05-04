@@ -14,7 +14,11 @@ const defaultContext: ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType>(defaultContext);
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  console.log("ThemeContext value:", context);
+  return context;
+};
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -25,11 +29,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Get the saved theme from localStorage or use system preference
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    let savedTheme: Theme | null = null;
+    try {
+      savedTheme = localStorage.getItem('theme') as Theme | null;
+      console.log("Theme from localStorage:", savedTheme);
+    } catch (error) {
+      console.error("Error accessing localStorage:", error);
+    }
     const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'dark'
       : 'light';
-    
+
     const initialTheme = savedTheme || systemPreference;
     setTheme(initialTheme);
     
@@ -38,8 +48,14 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, []);
 
   const handleThemeChange = (newTheme: Theme) => {
+    console.log("Setting theme to:", newTheme);
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
+    try {
+      localStorage.setItem('theme', newTheme);
+      console.log("Theme set in localStorage:", newTheme);
+    } catch (error) {
+      console.error("Error accessing localStorage:", error);
+    }
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 

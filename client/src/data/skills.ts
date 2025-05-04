@@ -4,11 +4,15 @@ export const skills = [
   'Python',
   'Tailwind CSS',
   'JavaScript',
+  'TypeScript',
   'Django',
   'SEO',
   'React',
   'HTML5',
   'CSS3',
   'UI/UX Design',
-  'Content Writing'
+  'Next.js',
+  'Full Stack Development',
+  'Content Writing',
+  'Coaching'
 ];

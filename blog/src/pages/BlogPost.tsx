@@ -1,9 +1,13 @@
 import { Helmet } from 'react-helmet';
 import { useQuery } from '@tanstack/react-query';
-import { useParams, Link } from 'wouter';
+import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaCalendarAlt, FaClock, FaTag, FaArrowLeft } from 'react-icons/fa';
-import { fadeIn } from '@/lib/framerAnimations';
+// Define fadeIn animation locally
+const fadeIn = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.5 } }
+};
 
 // Mock blog post data - this would normally come from the API
 const blogPost = {
@@ -73,7 +77,7 @@ const blogPost = {
 };
 
 const BlogPost = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams();
   
   const { data: post, isLoading, error } = useQuery({
     queryKey: [`/api/blog/post/${slug}`],
@@ -104,10 +108,10 @@ const BlogPost = () => {
       <div className="container mx-auto px-4 py-20 mt-16 text-center">
         <h1 className="text-3xl font-space font-bold text-slate-800 dark:text-white mb-4">Post Not Found</h1>
         <p className="text-slate-600 dark:text-slate-300 mb-8">The blog post you're looking for doesn't exist or has been removed.</p>
-        <Link href="/blog">
-          <a className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium">
+        <Link to="/">
+          <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium">
             <FaArrowLeft className="mr-2" /> Back to Blog
-          </a>
+          </div>
         </Link>
       </div>
     );
@@ -168,10 +172,8 @@ const BlogPost = () => {
             <hr className="my-8 border-slate-200 dark:border-slate-700" />
             
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <Link href="/blog">
-                <a className="inline-flex items-center text-primary dark:text-primary-light hover:underline">
-                  <FaArrowLeft className="mr-2" /> Back to Blog
-                </a>
+              <Link to="/" className="inline-flex items-center text-primary dark:text-primary-light hover:underline">
+                <FaArrowLeft className="mr-2" /> Back to Blog
               </Link>
               
               <div className="flex space-x-4">

@@ -1,47 +1,53 @@
 export const education = [
   {
-    title: 'Software Development',
-    institution: 'Coding Institute',
+    title: 'Software Development (Full Stack)',
+    institution: 'Code Institute',
     period: '2024 - 2025',
-    description: 'Specialized training in full-stack development with focus on modern web technologies.'
+    description: 'Intensive training in full-stack development with focus on modern web technologies, JavaScript, Python, and responsive design.'
   },
   {
-    title: 'Sport Science',
-    institution: 'St Mary\'s University',
+    title: 'Sport Science - 1st Class Honours',
+    institution: 'St Mary\'s University, Twickenham',
     period: '2020 - 2023',
-    description: 'First Class Honors degree in Sport Science with focus on performance analysis.'
+    description: 'First Class Honours degree with specialization in sports performance and coaching methodologies.'
   },
   {
-    title: 'Sports Science',
-    institution: 'Nordjyllands Idrætshøjskole',
+    title: 'Sports Science Program',
+    institution: 'Nordjyllands Idrætshøjskole, Denmark',
     period: '2019',
-    description: 'Intensive sports science program in Denmark focusing on practical applications.'
+    description: 'Specialized sports science program with focus on practical applications and international sports development.'
   },
   {
     title: 'Foundation in Business Management',
     institution: 'Brighton University',
     period: '2018',
-    description: 'Foundational business management concepts and principles.'
+    description: 'Foundational business management concepts, entrepreneurship, and marketing principles.'
   }
 ];
 
 export const certifications = [
   {
-    title: 'March 2025 Hackathon: 3rd Place',
-    issuer: 'Canvas Credentials',
-    date: 'Mar 2025',
-    skills: ['Python', 'Tailwind CSS']
+    title: 'Level 2 Table Tennis Coach',
+    issuer: 'Table Tennis England',
+    date: '2023',
+    skills: ['Coaching', 'Performance Analysis', 'Technique Development']
   },
   {
-    title: 'February 2025 Hackathon: 1st Place',
-    issuer: 'Canvas Credentials',
-    date: 'Feb 2025',
-    skills: ['JavaScript', 'Django', 'Python']
+    title: 'Level 2 Wheelchair Rugby Coach',
+    issuer: 'Wheelchair Rugby League Association',
+    date: '2023',
+    skills: ['Adaptive Sports', 'Inclusive Coaching', 'Team Strategy']
   },
   {
-    title: 'January 2025 Hackathon: Participant',
-    issuer: 'Canvas Credentials',
-    date: 'Jan 2025',
-    skills: ['Tailwind CSS', 'Django']
+    title: 'PADI Open Water Diver',
+    issuer: 'Professional Association of Diving Instructors',
+    date: '2022',
+    skills: ['Scuba Diving', 'Free Diving', 'Underwater Navigation']
+  },
+  {
+    title: 'Hackathon Winner (2x)',
+    issuer: 'Various Tech Organizations',
+    date: '2024-2025',
+    skills: ['Rapid Prototyping', 'JavaScript', 'Python', 'Teamwork']
   }
 ];

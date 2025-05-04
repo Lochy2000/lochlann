@@ -1,8 +1,7 @@
 import Hero from '@/components/home/Hero';
-import AboutSection from '@/components/about/AboutSection';
+import AboutMe from '@/components/home/AboutMe';
 import Timeline from '@/components/experience/Timeline';
 import Portfolio from './Portfolio';
-import Blog from './Blog';
 import Contact from './Contact';
 import { Helmet } from 'react-helmet';
 
@@ -16,10 +15,9 @@ const Home = () => {
       
       <div>
         <Hero />
-        <AboutSection />
+        <AboutMe />
         <Timeline />
         <Portfolio showAll={false} />
-        <Blog showAll={false} />
         <Contact />
       </div>
     </>

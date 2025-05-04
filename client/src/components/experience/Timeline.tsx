@@ -3,7 +3,7 @@ import TimelineItem from './TimelineItem';
 import SectionTitle from '@/components/ui/SectionTitle';
 import { experiences } from '@/data/experience';
 import { staggerContainer } from '@/lib/framerAnimations';
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 import { FaDownload } from 'react-icons/fa';
 
 const Timeline = () => {
@@ -38,7 +38,7 @@ const Timeline = () => {
           </div>
           
           <div className="text-center mt-10">
-            <Link href="/resume" className="inline-flex items-center text-primary-light hover:text-primary-dark dark:hover:text-white transition-colors">
+            <Link to="/resume" className="inline-flex items-center text-primary-light hover:text-primary-dark dark:hover:text-white transition-colors">
               <span>View Full Resume</span>
               <FaDownload className="ml-2" />
             </Link>

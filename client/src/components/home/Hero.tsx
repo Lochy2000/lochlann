@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link } from 'wouter';
+import { Link } from 'react-router-dom';
 import TypewriterText from '../ui/TypewriterText';
 import ParticleBackground from './ParticleBackground';
 import { fadeIn, slideUp } from '@/lib/framerAnimations';
@@ -54,10 +54,10 @@ const Hero = () => {
               className="flex flex-wrap gap-4"
               variants={slideUp}
             >
-              <Link href="/portfolio" className="px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium hover:shadow-lg transition-all glow-effect">
+              <Link to="/portfolio" className="px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium hover:shadow-lg transition-all glow-effect">
                 View My Work
               </Link>
-              <Link href="/contact" className="px-6 py-3 rounded-full border-2 border-primary dark:border-primary-light text-primary dark:text-primary-light font-medium hover:bg-primary/10 transition-all">
+              <Link to="/contact" className="px-6 py-3 rounded-full border-2 border-primary dark:border-primary-light text-primary dark:text-primary-light font-medium hover:bg-primary/10 transition-all">
                 Get In Touch
               </Link>
             </motion.div>
