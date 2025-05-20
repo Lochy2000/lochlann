@@ -1,8 +1,11 @@
 // This script checks if the build output is correct for Vercel deployment
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const projectRoot = process.cwd();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..');
 const distPath = path.join(projectRoot, 'dist');
 const publicPath = path.join(distPath, 'public');
 const blogPath = path.join(distPath, 'blog');
