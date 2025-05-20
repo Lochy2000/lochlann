@@ -1,33 +1,97 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from './context/ThemeContext';
 import BlogHeader from './components/BlogHeader';
 import BlogFooter from './components/BlogFooter';
-import FeaturedPosts from './components/FeaturedPosts';
-import RecentPosts from './components/RecentPosts';
-import Sidebar from './components/Sidebar';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
+import NotFound from './pages/NotFound';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import LoginPage from './pages/Auth/LoginPage';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+import { Helmet } from 'react-helmet';
+
+// Create a new query client
+const queryClient = new QueryClient();
 
 const App: React.FC = () => {
   // For debugging
-  console.log('Blog App rendered, basename: /blog');
+  console.log('Blog App rendered');
+  
+  // Determine if we need a basename
+  // When deployed as part of the main site, we'll use "/blog" 
+  // For local development, we'll use ""
+  const isLocalDevelopment = window.location.port === "5001";
+  const basename = isLocalDevelopment ? "" : "/blog";
+  
+  console.log('Using basename:', basename);
   
   return (
-    <BrowserRouter>
-      <div className="min-h-screen blog-root">
-        <BlogHeader />
-        <main className="blog-main pt-4">
-          <div className="container mx-auto py-8 px-6">
-            <Routes>
-              <Route path="/" element={<Blog />} />
-              <Route path="/post1" element={<BlogPost />} />
-              <Route path="/category/news" element={<div>Category News</div>} />
-            </Routes>
-          </div>
-        </main>
-        <BlogFooter />
-      </div>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <BrowserRouter basename={basename}>
+          <Helmet>
+            <title>Lochlann's Tech Blog | Developer Insights & Tutorials</title>
+            <meta name="description" content="Explore web development tutorials, coding tips, and tech insights from Lochlann O'Higgins. A junior developer's journey through tech, AI, and lo-fi aesthetics." />
+            <meta name="keywords" content="web development, coding, programming, javascript, typescript, react, tech blog, developer blog, junior developer, lo-fi, tech tutorials" />
+            <meta property="og:title" content="Lochlann's Tech Blog" />
+            <meta property="og:description" content="Developer insights, coding tutorials, and tech explorations with a lo-fi aesthetic." />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content="https://lochlannohiggins.com/blog" />
+            {/* Add Google Fonts for Inter and Space Grotesk */}
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+          </Helmet>
+          
+          <Routes>
+            {/* Admin Routes - No Header/Footer */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute redirectPath="/login">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Auth Routes - No Header/Footer */}
+            <Route path="/login" element={<LoginPage />} />
+            
+            {/* Debug Route */}
+            <Route path="/debug" element={<div style={{padding: '2rem', background: 'white'}}>
+              <h1>Debug Page</h1>
+              <p>This page is for debugging routing issues.</p>
+            </div>} />
+            
+            {/* Regular Blog Routes - With Header/Footer */}
+            <Route path="/*" element={
+              <div className="min-h-screen blog-root relative">
+                {/* Nightscape background effect for dark mode */}
+                <div className="nightscape-bg hidden dark:block"></div>
+                {/* Light pattern for light mode */}
+                <div className="dots-bg block dark:hidden"></div>
+                
+                <BlogHeader />
+                <main className="blog-main pt-4">
+                  <div className="container mx-auto py-8 px-6">
+                    <Routes>
+                      <Route path="/" element={<Blog />} />
+                      <Route path="/post/:slug" element={<BlogPost />} />
+                      <Route path="/category/:category" element={<Blog />} />
+                      <Route path="/tags/:tag" element={<Blog />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                </main>
+                <BlogFooter />
+              </div>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 };
 

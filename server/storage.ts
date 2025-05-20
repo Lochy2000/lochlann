@@ -1,5 +1,4 @@
 import { 
-  users, 
   type User, 
   type InsertUser,
   type ContactMessage,
@@ -9,8 +8,15 @@ import {
   type PortfolioProject,
   type InsertPortfolioProject,
   type CvData,
-  type InsertCvData 
-} from "@shared/schema";
+  type InsertCvData,
+  users,
+  contactMessages,
+  blogPosts,
+  portfolioProjects,
+  cvData
+} from "../shared/schema.js";
+import { db, isDatabaseInitialized } from "./db.js";
+import { eq } from "drizzle-orm";
 
 // Full interface for all CRUD operations needed
 export interface IStorage {
@@ -27,6 +33,8 @@ export interface IStorage {
   getBlogPosts(): Promise<BlogPost[]>;
   getBlogPostBySlug(slug: string): Promise<BlogPost | undefined>;
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
+  updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined>;
+  deleteBlogPost(id: number): Promise<boolean>;
   
   // Portfolio methods
   getPortfolioProjects(): Promise<PortfolioProject[]>;
@@ -37,199 +45,320 @@ export interface IStorage {
   createCvData(data: InsertCvData): Promise<CvData>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private contactMessages: Map<number, ContactMessage>;
-  private blogPosts: Map<number, BlogPost>;
-  private portfolioProjects: Map<number, PortfolioProject>;
-  private cvData: Map<number, CvData>;
-  
-  private userIdCounter: number;
-  private contactIdCounter: number;
-  private blogIdCounter: number;
-  private portfolioIdCounter: number;
-  private cvDataIdCounter: number;
-
-  constructor() {
-    this.users = new Map();
-    this.contactMessages = new Map();
-    this.blogPosts = new Map();
-    this.portfolioProjects = new Map();
-    this.cvData = new Map();
-    
-    this.userIdCounter = 1;
-    this.contactIdCounter = 1;
-    this.blogIdCounter = 1;
-    this.portfolioIdCounter = 1;
-    this.cvDataIdCounter = 1;
-    
-    // Initialize with some mock data for development
-    this.initDemoData();
-  }
-
+export class DrizzleStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    if (!db) {
+      console.error('Database connection not initialized');
+      return undefined;
+    }
+    
+    try {
+      const result = await db.select().from(users).where(eq(users.id, id));
+      return result[0];
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return undefined;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    if (!db) {
+      console.error('Database connection not initialized');
+      return undefined;
+    }
+    
+    try {
+      const result = await db.select().from(users).where(eq(users.username, username));
+      return result[0];
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      return undefined;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    if (!db) {
+      throw new Error('Database connection not initialized');
+    }
+    
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
   
   // Contact message methods
   async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
-    const id = this.contactIdCounter++;
+    if (!db) {
+      throw new Error('Database connection not initialized');
+    }
+    
     const now = new Date();
-    const contactMessage: ContactMessage = { 
-      ...message, 
-      id, 
-      createdAt: now, 
-      read: false 
+    const contactMessage = {
+      ...message,
+      createdAt: now,
+      read: false
     };
-    this.contactMessages.set(id, contactMessage);
-    return contactMessage;
+    
+    const result = await db.insert(contactMessages).values(contactMessage).returning();
+    return result[0];
   }
   
   async getContactMessages(): Promise<ContactMessage[]> {
-    return Array.from(this.contactMessages.values())
-      .sort((a, b) => {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
+    if (!db) {
+      console.error('Database connection not initialized');
+      return [];
+    }
+    
+    try {
+      return await db.select().from(contactMessages).orderBy(contactMessages.createdAt);
+    } catch (error) {
+      console.error('Error getting contact messages:', error);
+      return [];
+    }
   }
   
   // Blog methods
   async getBlogPosts(): Promise<BlogPost[]> {
-    return Array.from(this.blogPosts.values())
-      .filter(post => post.published)
-      .sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
+    if (!isDatabaseInitialized()) {
+      console.error('Database connection not initialized');
+      return [];
+    }
+    
+    try {
+      return await db.select()
+        .from(blogPosts)
+        .where(eq(blogPosts.published, true))
+        .orderBy(blogPosts.date);
+    } catch (error) {
+      console.error('Error getting blog posts:', error);
+      return [];
+    }
   }
   
   async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
-    return Array.from(this.blogPosts.values()).find(
-      (post) => post.slug === slug && post.published
-    );
+    if (!isDatabaseInitialized()) {
+      console.error('Database connection not initialized');
+      return undefined;
+    }
+    
+    try {
+      const result = await db.select()
+        .from(blogPosts)
+        .where(eq(blogPosts.slug, slug))
+        .where(eq(blogPosts.published, true));
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error getting blog post by slug:', error);
+      return undefined;
+    }
   }
   
   async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
-    const id = this.blogIdCounter++;
-    const now = new Date();
-    const blogPost: BlogPost = { 
-      ...post, 
-      id, 
-      published: post.published ?? true,
-      createdAt: now,
-      updatedAt: now
-    };
-    this.blogPosts.set(id, blogPost);
-    return blogPost;
+    if (!isDatabaseInitialized()) {
+      console.error('Database connection not initialized. Make sure the database is properly configured.');
+      throw new Error('Database connection not initialized');
+    }
+    
+    try {
+      const now = new Date();
+      const blogPost = {
+        ...post,
+        published: post.published ?? true,
+        createdAt: now,
+        updatedAt: now
+      };
+      
+      const result = await db.insert(blogPosts).values(blogPost).returning();
+      return result[0];
+    } catch (error) {
+      console.error('Error creating blog post:', error);
+      throw new Error(`Failed to create blog post: ${error.message}`);
+    }
+  }
+  
+  async updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
+    if (!isDatabaseInitialized()) {
+      console.error('Database connection not initialized');
+      return undefined;
+    }
+    
+    try {
+      const now = new Date();
+      const updateData = {
+        ...post,
+        updatedAt: now
+      };
+      
+      const result = await db.update(blogPosts)
+        .set(updateData)
+        .where(eq(blogPosts.id, id))
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error updating blog post:', error);
+      return undefined;
+    }
+  }
+  
+  async deleteBlogPost(id: number): Promise<boolean> {
+    if (!isDatabaseInitialized()) {
+      console.error('Database connection not initialized');
+      return false;
+    }
+    
+    try {
+      const result = await db.delete(blogPosts)
+        .where(eq(blogPosts.id, id))
+        .returning({ id: blogPosts.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error deleting blog post:', error);
+      return false;
+    }
   }
   
   // Portfolio methods
   async getPortfolioProjects(): Promise<PortfolioProject[]> {
-    return Array.from(this.portfolioProjects.values())
-      .sort((a, b) => a.order - b.order);
+    if (!db) {
+      console.error('Database connection not initialized');
+      return [];
+    }
+    
+    try {
+      return await db.select()
+        .from(portfolioProjects)
+        .orderBy(portfolioProjects.order);
+    } catch (error) {
+      console.error('Error getting portfolio projects:', error);
+      return [];
+    }
   }
   
   async createPortfolioProject(project: InsertPortfolioProject): Promise<PortfolioProject> {
-    const id = this.portfolioIdCounter++;
+    if (!db) {
+      throw new Error('Database connection not initialized');
+    }
     
-    // Ensure null values for optional fields to match the PortfolioProject type
-    const portfolioProject: PortfolioProject = { 
-      ...project, 
-      id, 
+    const portfolioProject = {
+      ...project,
       shortTitle: project.shortTitle || null,
       demoLink: project.demoLink || null,
       githubLink: project.githubLink || null,
       featured: project.featured ?? false,
-      order: project.order ?? 0 
+      order: project.order ?? 0
     };
     
-    this.portfolioProjects.set(id, portfolioProject);
-    return portfolioProject;
+    const result = await db.insert(portfolioProjects).values(portfolioProject).returning();
+    return result[0];
   }
   
   // CV data methods
   async getCvData(): Promise<CvData[]> {
-    return Array.from(this.cvData.values())
-      .sort((a, b) => a.order - b.order);
+    if (!db) {
+      console.error('Database connection not initialized');
+      return [];
+    }
+    
+    try {
+      return await db.select()
+        .from(cvData)
+        .orderBy(cvData.order);
+    } catch (error) {
+      console.error('Error getting CV data:', error);
+      return [];
+    }
   }
   
   async createCvData(data: InsertCvData): Promise<CvData> {
-    const id = this.cvDataIdCounter++;
-    const cvDataItem: CvData = { 
-      ...data, 
-      id, 
-      order: data.order ?? 0 
+    if (!db) {
+      throw new Error('Database connection not initialized');
+    }
+    
+    const cvDataItem = {
+      ...data,
+      order: data.order ?? 0
     };
-    this.cvData.set(id, cvDataItem);
-    return cvDataItem;
+    
+    const result = await db.insert(cvData).values(cvDataItem).returning();
+    return result[0];
   }
   
-  // Initialize with demo data
-  private initDemoData() {
-    // Add sample blog posts
-    this.createBlogPost({
-      slug: 'getting-started-with-web-development',
-      title: 'Getting Started with Web Development',
-      excerpt: 'A beginner\'s guide to starting your journey in web development.',
-      content: 'This is a sample blog post content about web development basics.',
-      date: '2023-09-15',
-      readTime: '5 min',
-      category: 'Web Development',
-      categoryColor: 'blue',
-      image: '/images/blog/web-dev.jpg',
-      published: true
-    });
+  // Initialize demo data for development (can be used to seed the database)
+  async initDemoData() {
+    if (!db) {
+      console.error('Database connection not initialized');
+      return;
+    }
     
-    this.createBlogPost({
-      slug: 'mastering-react-hooks',
-      title: 'Mastering React Hooks',
-      excerpt: 'Learn how to use React Hooks effectively in your projects.',
-      content: 'This is a sample blog post content about React Hooks.',
-      date: '2023-10-20',
-      readTime: '8 min',
-      category: 'React',
-      categoryColor: 'green',
-      image: '/images/blog/react-hooks.jpg',
-      published: true
-    });
-    
-    // Add sample portfolio projects
-    this.createPortfolioProject({
-      title: 'E-commerce Platform',
-      shortTitle: 'E-commerce',
-      description: 'A full-stack e-commerce platform with payment integration.',
-      image: '/images/portfolio/ecommerce.jpg',
-      technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'Stripe'],
-      demoLink: 'https://example.com/demo1',
-      githubLink: 'https://github.com/username/ecommerce',
-      featured: true,
-      order: 1
-    });
-    
-    this.createPortfolioProject({
-      title: 'Task Management App',
-      shortTitle: 'Task App',
-      description: 'A responsive task management application with drag-and-drop functionality.',
-      image: '/images/portfolio/task-app.jpg',
-      technologies: ['React', 'TypeScript', 'Firebase', 'Tailwind CSS'],
-      demoLink: 'https://example.com/demo2',
-      githubLink: 'https://github.com/username/task-app',
-      featured: true,
-      order: 2
-    });
+    try {
+      // Check if data already exists
+      const existingPosts = await db.select().from(blogPosts);
+      if (existingPosts.length > 0) {
+        console.log('Demo data already initialized, skipping...');
+        return;
+      }
+      
+      // Add sample blog posts
+      await this.createBlogPost({
+        slug: 'getting-started-with-web-development',
+        title: 'Getting Started with Web Development',
+        excerpt: 'A beginner\'s guide to starting your journey in web development.',
+        content: 'This is a sample blog post content about web development basics.',
+        date: '2023-09-15',
+        readTime: '5 min',
+        category: 'Web Development',
+        categoryColor: 'blue',
+        image: '/images/blog/web-dev.jpg',
+        published: true
+      });
+      
+      await this.createBlogPost({
+        slug: 'mastering-react-hooks',
+        title: 'Mastering React Hooks',
+        excerpt: 'Learn how to use React Hooks effectively in your projects.',
+        content: 'This is a sample blog post content about React Hooks.',
+        date: '2023-10-20',
+        readTime: '8 min',
+        category: 'React',
+        categoryColor: 'green',
+        image: '/images/blog/react-hooks.jpg',
+        published: true
+      });
+      
+      // Add sample portfolio projects
+      await this.createPortfolioProject({
+        title: 'E-commerce Platform',
+        shortTitle: 'E-commerce',
+        description: 'A full-stack e-commerce platform with payment integration.',
+        image: '/images/portfolio/ecommerce.jpg',
+        technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'Stripe'],
+        demoLink: 'https://example.com/demo1',
+        githubLink: 'https://github.com/username/ecommerce',
+        featured: true,
+        order: 1
+      });
+      
+      await this.createPortfolioProject({
+        title: 'Task Management App',
+        shortTitle: 'Task App',
+        description: 'A responsive task management application with drag-and-drop functionality.',
+        image: '/images/portfolio/task-app.jpg',
+        technologies: ['React', 'TypeScript', 'Firebase', 'Tailwind CSS'],
+        demoLink: 'https://example.com/demo2',
+        githubLink: 'https://github.com/username/task-app',
+        featured: true,
+        order: 2
+      });
+      
+      console.log('Demo data initialized successfully');
+    } catch (error) {
+      console.error('Error initializing demo data:', error);
+    }
   }
 }
 
-export const storage = new MemStorage();
+// Create and export the storage instance
+export const storage = new DrizzleStorage();

@@ -2,55 +2,53 @@ export const portfolioProjects = [
   {
     title: 'Phonetic Focus',
     shortTitle: 'Phonetic Focus',
-    image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?ixlib=rb-1.2.1&auto=format&fit=crop&w=600',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747676704/frentic-focus_c4o1u2.png',
     description: 'A responsive website for a digital literacy consulting firm with custom animations and content management system.',
-    technologies: ['WordPress', 'Custom Themes', 'Responsive'],
-    demoLink: 'https://example.com/phonetic-focus',
-    githubLink: 'https://github.com/lochlannohiggins/phonetic-focus'
+    technologies: ['WordPress', 'Custom Themes', 'Responsive','DigitalOceans'],
+    demoLink: 'https://www.freneticfocus.com/',
+    githubLink: 'https://github.com/Lochy2000/frenticfocus-'
   },
   {
     title: 'Dating Events Platform',
     shortTitle: 'Dating Events',
-    image: 'https://images.unsplash.com/photo-1566140967404-b8b3932483f5?ixlib=rb-1.2.1&auto=format&fit=crop&w=600',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747676704/dating-events_im2wpb.png',
     description: 'A full-featured events platform for dating services with booking system, user profiles, and payment integration.',
-    technologies: ['React', 'Firebase', 'Stripe API'],
-    demoLink: 'https://example.com/dating-events',
-    githubLink: 'https://github.com/lochlannohiggins/dating-events'
+    technologies: ['DJANGO', 'PYTHON', 'Postgresql'],
+    githubLink: 'https://github.com/hannahro15/CI-Feb25-hackathon'
   },
   {
-    title: 'Devverse Agency',
-    shortTitle: 'Devverse',
-    image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-1.2.1&auto=format&fit=crop&w=600',
-    description: 'A modern website for a web development agency featuring service listings, team profiles, and project portfolio.',
-    technologies: ['Django', 'Tailwind CSS', 'JavaScript'],
-    demoLink: 'https://example.com/devverse',
-    githubLink: 'https://github.com/lochlannohiggins/devverse'
+    title: 'Draw-UI-with-AI',
+    shortTitle: 'Building With AI',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747731592/ui_veyyjb.webp',
+    description: 'Simple draw tool which can be used to draw a website user interface. Core functionality is working but basic, could use some work.',
+    technologies: ['JavaScript', 'TypeScript', 'CSS'],
+    githubLink: 'https://github.com/Lochy2000/Draw-UI-with-AI'
   },
   {
     title: 'Ctrl+Alt+Escape',
     shortTitle: 'Ctrl+Alt+Escape',
-    image: 'https://images.unsplash.com/photo-1614064641938-3bbee52942c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=600',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747676705/ctrl-atl-delete_j9oeda.png',
     description: 'An interactive booking platform for virtual escape rooms with user accounts, leaderboards, and team management.',
-    technologies: ['React', 'Node.js', 'MongoDB'],
+    technologies: ['Django', 'TailwindCDN', 'Postgresql'],
     demoLink: 'https://example.com/ctrlaltescape',
     githubLink: 'https://github.com/lochlannohiggins/ctrlaltescape'
   },
   {
-    title: 'FitTrack Pro',
-    shortTitle: 'FitTrack',
-    image: 'https://images.unsplash.com/photo-1562771379-eafdca7a02f8?ixlib=rb-1.2.1&auto=format&fit=crop&w=600',
-    description: 'A fitness tracking application allowing users to track workouts, set goals, and monitor progress with data visualization.',
-    technologies: ['React Native', 'GraphQL', 'D3.js'],
-    demoLink: 'https://example.com/fittrack',
-    githubLink: 'https://github.com/lochlannohiggins/fittrack'
+    title: 'Web Design Agency',
+    shortTitle: 'Wed Agency',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747732251/easywebs_ckw0n8.png',
+    description: "EasyWeb website is a modern, well-structured React application built with Vite and using a variety of modern web technologies. Here's an overview of the site's structure, styling, and functionality: Tech Stack & Dependencies",
+    technologies: ['React', 'Typescript', 'CSS','HTML'],
+    demoLink: 'https://www.easywebs.uk/',
+    githubLink: 'https://github.com/Lochy2000/easyweb'
   },
   {
-    title: 'EcoCommerce',
-    shortTitle: 'EcoCommerce',
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600',
-    description: 'An e-commerce platform for eco-friendly products with sustainable shipping options and carbon footprint tracking.',
-    technologies: ['Next.js', 'Shopify API', 'Tailwind CSS'],
-    demoLink: 'https://example.com/ecocommerce',
-    githubLink: 'https://github.com/lochlannohiggins/ecocommerce'
+    title: 'Boost.dev',
+    shortTitle: 'Community Platform',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747733102/boostdev_ypjlei.png',
+    description: "This OnGoing project was made for the April Hackthon - 'Unmask The Coder' by Code Institute. It aims to show users that they have good skills and to help dealing with Imposter Syndrome.",
+    technologies: ['FastAPI', 'Python', 'DJANGO', 'Tailwindd CSS'],
+    demoLink: 'https://boost-dev-9ed56bf6f182.herokuapp.com/',
+    githubLink: 'https://github.com/Lochy2000/boost.dev'
   }
 ];

@@ -17,7 +17,7 @@ const Footer = () => {
           
           <div className="flex space-x-6 mb-6 md:mb-0">
             <a 
-              href="https://github.com/lochlannohiggins" 
+              href="https://github.com/lochy2000" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-slate-400 hover:text-primary-light transition-colors"
@@ -26,7 +26,7 @@ const Footer = () => {
               <FaGithub className="text-2xl" />
             </a>
             <a 
-              href="https://linkedin.com/in/lochlann-ohiggins" 
+              href="https://www.linkedin.com/in/lochy-dev/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-slate-400 hover:text-primary-light transition-colors"
@@ -40,15 +40,6 @@ const Footer = () => {
               aria-label="Email"
             >
               <FaEnvelope className="text-2xl" />
-            </a>
-            <a 
-              href="https://twitter.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-slate-400 hover:text-primary-light transition-colors"
-              aria-label="Twitter"
-            >
-              <FaTwitter className="text-2xl" />
             </a>
           </div>
           

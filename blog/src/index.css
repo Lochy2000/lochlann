@@ -1,27 +1,30 @@
+/* Import our custom Lo-Fi theme */
+@import './styles/lofi-theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --primary: #3b82f6;
-  --primary-light: #60a5fa;
+  --primary: #6366f1;
+  --primary-light: #818cf8;
+  --primary-dark: #4f46e5;
   --secondary: #8b5cf6;
-  --light: #f9fafb;
-  --dark: #111827;
-  --darker: #0f172a;
+  --light: #f8fafc;
+  --dark: #0f172a;
+  --darker: #020617;
 }
 
 /* Reset to prevent inheritance from main site */
 html, body {
   margin: 0;
   padding: 0;
+  font-family: 'Inter', sans-serif;
 }
 
 body {
   @apply bg-light dark:bg-dark text-slate-800 dark:text-slate-200;
-  font-family: sans-serif;
   min-height: 100vh;
-  /* Add important to override any inherited styles */
   overflow-x: hidden !important;
 }
 
@@ -32,35 +35,167 @@ body {
   padding: 0 1rem;
 }
 
-.glow-effect {
-  transition: all 0.3s ease;
-}
-
-.glow-effect:hover {
-  box-shadow: 0 0 15px var(--primary);
-}
-
 /* Blog-specific header adjustments */
 .blog-header {
-  position: static !important; /* Override any conflicting fixed position */
+  position: static !important;
   top: 0;
-  z-index: 30; /* Lower than main site's z-index */
+  z-index: 30;
 }
 
-/* Blog post styling */
-.blog-post {
-  @apply bg-white dark:bg-slate-800 rounded-xl shadow-md p-6;
-  margin-bottom: 2rem;
+@layer components {
+  /* Lo-Fi Specific Components */
+  .lofi-card {
+    @apply bg-white dark:bg-lofi-terminal border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-lofi dark:shadow-none transition-all duration-300;
+  }
+  
+  .lofi-button {
+    @apply bg-primary hover:bg-primary-dark text-white dark:text-white font-medium px-5 py-2 rounded-lg shadow-lofi hover:shadow-lofi-lg hover:-translate-y-1 transition-all duration-200;
+  }
+  
+  .lofi-button-secondary {
+    @apply bg-white dark:bg-slate-800 text-slate-800 dark:text-white border-2 border-slate-300 dark:border-slate-700 font-medium px-5 py-2 rounded-lg shadow-lofi hover:shadow-lofi-lg hover:-translate-y-1 transition-all duration-200;
+  }
+  
+  .lofi-input {
+    @apply bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-primary dark:focus:border-primary-light transition-colors;
+  }
+  
+  .lofi-tag {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300;
+  }
+  
+  .lofi-terminal {
+    @apply bg-lofi-terminal text-slate-300 font-mono p-4 rounded-lg border border-slate-700 shadow-lofi;
+  }
+  
+  .lofi-link {
+    @apply text-primary dark:text-primary-light hover:underline font-medium;
+  }
+  
+  .code-snippet {
+    @apply font-mono text-sm bg-lofi-terminal text-slate-300 p-4 rounded-lg shadow-lofi overflow-x-auto;
+  }
+}
+
+/* Blog post card styling */
+.blog-post-card {
+  @apply lofi-card;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.blog-post-card:hover {
+  transform: translateY(-5px);
 }
 
 .blog-post-title {
   @apply text-2xl font-bold mb-2 text-slate-900 dark:text-white;
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .blog-post-meta {
-  @apply text-sm text-slate-500 dark:text-slate-400 mb-4;
+  @apply text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2;
 }
 
 .blog-post-content {
-  @apply text-slate-700 dark:text-slate-300;
+  @apply text-slate-700 dark:text-slate-300 leading-relaxed;
+}
+
+/* Code blocks in blog posts */
+.blog-post-content pre {
+  @apply lofi-terminal my-4 overflow-x-auto;
+}
+
+.blog-post-content code {
+  @apply font-mono text-sm px-1 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300;
+}
+
+.blog-post-content pre code {
+  @apply bg-transparent p-0 text-white;
+}
+
+/* Links in blog content */
+.blog-post-content a {
+  @apply lofi-link;
+}
+
+/* Dots background pattern for light mode */
+.dots-bg {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.dark .dots-bg {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Utility classes for Lo-Fi aesthetic */
+.retro-shadow {
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.dark .retro-shadow {
+  box-shadow: 3px 3px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Category badges */
+.category-badge {
+  @apply lofi-tag;
+}
+
+/* Code syntax highlighting colors */
+.code-keyword {
+  color: var(--lofi-purple);
+}
+
+.code-string {
+  color: var(--lofi-pink);
+}
+
+.code-comment {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.code-function {
+  color: var(--lofi-blue);
+}
+
+/* Terminal windows */
+.terminal-window {
+  @apply bg-lofi-terminal rounded-lg overflow-hidden border border-slate-700 shadow-lofi;
+}
+
+.terminal-header {
+  @apply bg-slate-800 px-4 py-2 flex items-center;
+}
+
+.terminal-button {
+  @apply w-3 h-3 rounded-full mr-2;
+}
+
+.terminal-close {
+  @apply bg-red-500;
+}
+
+.terminal-minimize {
+  @apply bg-yellow-500;
+}
+
+.terminal-maximize {
+  @apply bg-green-500;
+}
+
+.terminal-body {
+  @apply p-4 font-mono text-sm text-slate-300;
+}
+
+.terminal-prompt::before {
+  content: '$ ';
+  color: var(--primary);
+}
+
+/* For the blog category system */
+.category-filter-active {
+  @apply bg-primary text-white;
 }

@@ -1,136 +1,110 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-interface AnimatedGridProps {
-  opacity?: number;
-  lineColor1?: string;
-  lineColor2?: string;
-  lineColor3?: string;
-  angle?: number;
+interface AnimatedDotGridProps {
+  dotColor?: string;
+  dotRadius?: number;
   spacing?: number;
-  lineWidth?: number;
   animationSpeed?: number;
+  opacityBase?: number;
+  opacityWave?: number;
 }
 
-const AnimatedGrid = ({
-  opacity = 0.2,
-  lineColor1 = '#040927',
-  lineColor2 = '#c22938',
-  lineColor3 = '#e16f23',
-  angle = 60,
-  spacing = 25,
-  lineWidth = 1,
-  animationSpeed = 5
-}: AnimatedGridProps) => {
+const AnimatedDotGrid = ({
+  dotColor = '#ffb997',
+  dotRadius = 2,
+  spacing = 40,
+  animationSpeed = 1,
+  opacityBase = 0.15,
+  opacityWave = 0.25
+}: AnimatedDotGridProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+  const [mousePos, setMousePos] = useState<{ x: number; y: number } | null>(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     const setCanvasDimensions = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
-      
       canvas.width = parent.clientWidth;
       canvas.height = parent.clientHeight;
     };
-    
+
     setCanvasDimensions();
     window.addEventListener('resize', setCanvasDimensions);
-    
-    // Convert hex to rgb
+
     const hexToRgb = (hex: string) => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result ? {
         r: parseInt(result[1], 16),
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16)
-      } : { r: 0, g: 0, b: 0 };
+      } : { r: 255, g: 255, b: 255 };
     };
-    
-    // Parse colors
-    const color1 = hexToRgb(lineColor1);
-    const color2 = hexToRgb(lineColor2);
-    const color3 = hexToRgb(lineColor3);
-    
+
+    const color = hexToRgb(dotColor);
     let animationFrameId: number;
     let startTime = Date.now();
-    
-    const drawGrid = () => {
+
+    const drawDots = () => {
       if (!ctx || !canvas) return;
-      
-      const currentTime = (Date.now() - startTime) / 1000;
-      
-      // Clear canvas
+
+      const time = (Date.now() - startTime) / 1000;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Calculate the length of the diagonal
-      const diagonal = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height);
-      
-      // Convert angle to radians
-      const angleRad = (angle * Math.PI) / 180;
-      
-      // Calculate normal vector for the lines (perpendicular to angle)
-      const normalX = Math.cos(angleRad);
-      const normalY = Math.sin(angleRad);
-      
-      // Calculate how many lines we need
-      const numLines = Math.ceil(diagonal / spacing) * 2;
-      
-      // Calculate starting point (to cover the entire canvas)
-      const startOffset = -diagonal * 0.5;
-      
-      for (let i = 0; i < numLines; i++) {
-        // Position along the normal
-        const pos = startOffset + i * spacing;
-        
-        // Calculate endpoints of line
-        // Start point
-        const startX = pos * normalX - diagonal * normalY;
-        const startY = pos * normalY + diagonal * normalX;
-        
-        // End point
-        const endX = pos * normalX + diagonal * normalY;
-        const endY = pos * normalY - diagonal * normalX;
-        
-        // Animate color based on time and position
-        const t1 = (Math.sin(currentTime * animationSpeed / 10 + i * 0.1) + 1) * 0.5;
-        const t2 = (Math.sin(currentTime * animationSpeed / 15 + i * 0.05 + 2) + 1) * 0.5;
-        
-        // Mix colors
-        const r = Math.floor(color1.r * (1 - t1) + color2.r * t1 * (1 - t2) + color3.r * t1 * t2);
-        const g = Math.floor(color1.g * (1 - t1) + color2.g * t1 * (1 - t2) + color3.g * t1 * t2);
-        const b = Math.floor(color1.b * (1 - t1) + color2.b * t1 * (1 - t2) + color3.b * t1 * t2);
-        
-        // Draw line
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-        ctx.lineWidth = lineWidth;
-        ctx.stroke();
+
+      for (let y = 0; y < canvas.height; y += spacing) {
+        for (let x = 0; x < canvas.width; x += spacing) {
+          const dx = x / canvas.width;
+          const dy = y / canvas.height;
+          const wave = Math.sin((dx + dy + time * animationSpeed) * Math.PI * 2);
+          const distanceToMouse = mousePos
+            ? Math.hypot(mousePos.x - x, mousePos.y - y)
+            : Infinity;
+          const hoverBoost = Math.max(0, 1 - distanceToMouse / 100);
+
+          const alpha = opacityBase + wave * opacityWave + hoverBoost * 0.1;
+
+          ctx.beginPath();
+          ctx.arc(x, y, dotRadius, 0, 2 * Math.PI);
+          ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${Math.min(1, alpha).toFixed(2)})`;
+          ctx.fill();
+        }
       }
-      
-      animationFrameId = requestAnimationFrame(drawGrid);
+
+      animationFrameId = requestAnimationFrame(drawDots);
     };
-    
-    drawGrid();
-    
+
+    drawDots();
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    };
+
+    const handleMouseLeave = () => setMousePos(null);
+
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('mouseleave', handleMouseLeave);
+
     return () => {
       window.removeEventListener('resize', setCanvasDimensions);
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      canvas.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [opacity, lineColor1, lineColor2, lineColor3, angle, spacing, lineWidth, animationSpeed]);
-  
+  }, [dotColor, dotRadius, spacing, animationSpeed, opacityBase, opacityWave]);
+
   return (
-    <canvas 
-      ref={canvasRef} 
-      className="absolute inset-0 w-full h-full"
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full z-[1] pointer-events-none"
     />
   );
 };
 
-export default AnimatedGrid;
+export default AnimatedDotGrid;

@@ -26,11 +26,11 @@ export const experiences = [
     ]
   },
   {
-    date: '11/2023 - PRESENT',
-    title: 'Website Specialist',
+    date: '11/2023 - Present',
+    title: 'Front-End',
     company: 'Parallax Cinematics',
     description: 'Manage and update websites for a creative media company. Work closely with clients to deliver visually compelling, goal-oriented web experiences.',
-    skills: ['WordPress', 'UI/UX', 'Client Management', 'Content Strategy'],
+    skills: ['WordPress', 'UI/UX', 'Client Management', 'Content Strategy', 'JavaScript'],
     icon: FaFilm,
     iconColor: 'purple',
     keyPoints: [
@@ -40,7 +40,7 @@ export const experiences = [
     ]
   },
   {
-    date: '10/2023 - PRESENT',
+    date: '10/2023 - 04/2025',
     title: 'Head Table Tennis Coach',
     company: 'St Mary\'s University',
     description: 'Run weekly coaching sessions with an emphasis on technique and communication. Developed inclusive and engaging coaching programs for students of all levels.',

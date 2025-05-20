@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLinkedin, FaGithub, FaPhone } from 'react-icons/fa';
 import { fadeIn, staggerContainer } from '@/lib/framerAnimations';
-import AnimatedGrid from './AnimatedGrid';
+import AnimatedDotGrid from './AnimatedGrid';
 
 const ContactLinks = () => {
   const contactMethods = [
@@ -34,16 +34,14 @@ const ContactLinks = () => {
   return (
     <section className="py-16 bg-slate-100 dark:bg-slate-800 relative">
       {/* Animated Grid Background */}
-      <AnimatedGrid 
-        opacity={0.15} 
-        angle={45} 
-        spacing={25} 
-        lineWidth={1} 
-        animationSpeed={2.5}
-        lineColor1="#040927"
-        lineColor2="#c22938"
-        lineColor3="#e16f23"
-      />
+      <AnimatedDotGrid
+          dotColor="#ffb997"      // peachy color
+          dotRadius={1.5}
+          spacing={35}
+          animationSpeed={0.3}
+          opacityBase={0.1}
+          opacityWave={0.2}
+        />
       <div className="container mx-auto px-4">
         <motion.div 
           className="max-w-4xl mx-auto text-center"

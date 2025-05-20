@@ -1,7 +1,12 @@
 import { defineConfig } from "drizzle-kit";
+import * as config from "./config.js";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
+// Use the config variables directly
+const databaseUrl = config.DATABASE_URL;
+
+// Validate DATABASE_URL
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not defined in the config file");
 }
 
 export default defineConfig({
@@ -9,6 +14,6 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: databaseUrl,
   },
 });

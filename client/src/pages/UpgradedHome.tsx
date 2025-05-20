@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet';
 import ShaderGradientHero from '@/components/home/upgraded/ShaderGradientHero';
+
 import ModernAbout from '@/components/home/upgraded/ModernAbout';
 import ExperiencePreview from '@/components/home/upgraded/ExperiencePreview';
 import ContactLinks from '@/components/home/upgraded/ContactLinks';
@@ -14,7 +15,9 @@ const UpgradedHome = () => {
       
       <div>
         <ShaderGradientHero />
+
         <ModernAbout />
+
         <ExperiencePreview />
         <ContactLinks />
       </div>

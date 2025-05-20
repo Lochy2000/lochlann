@@ -30,9 +30,11 @@ const Header = () => {
     <header className={headerClasses}>
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-space font-bold">
-            L
-          </div>
+          <img
+            src="https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png"
+            alt="Profile image"
+            className="w-10 h-10 rounded-full object-cover"
+          />
           <span className="font-space font-semibold text-xl dark:text-white">Lochlann</span>
         </Link>
         

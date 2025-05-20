@@ -1,133 +1,125 @@
-# Lochlann Website Architecture and Design
+# Lochlann's Portfolio & Blog
 
-## 1. Project Architecture
+This repository contains both the personal portfolio/CV website and the blog website. The project is designed to be deployed as a unified website with the blog accessible at `/blog`.
 
-The "lochlann" website is a React application built with TypeScript. It uses Tailwind CSS for styling and React Query for data fetching. The application uses `wouter` for routing. The server-side code is written in TypeScript using Express.js.
+## Project Structure
 
-## 2. File Structure
+- `client/` - Main portfolio/CV site frontend (React)
+- `blog/` - Blog site frontend (React)
+- `scripts/deployment/` - Build and deployment scripts
 
-The project follows a standard React file structure, with components organized in the `client/src/components` directory and pages in the `client/src/pages` directory. Data is stored in the `client/src/data` directory. The server-side code is located in the `server` directory.
+## Development
 
-## 3. Component Hierarchy
+### Running locally
 
-The main component is `App`, which wraps the entire application. It includes a `Header`, `Footer`, `DarkModeToggle`, and a `Router` component. The `Router` component defines the routes for the different pages of the website.
+The project has two main parts that can be run independently or together:
 
-Here's a Mermaid diagram of the component hierarchy:
+#### Portfolio/CV Site Only
 
-```mermaid
-graph LR
-    A[App] --> B(Header);
-    A --> C(Footer);
-    A --> D(DarkModeToggle);
-    A --> E(Router);
-    E --> F(Home);
-    E --> G(About);
-    E --> H(Experience);
-    E --> I(Portfolio);
-    E --> J(Blog);
-    E --> K(Contact);
-    E --> L(Resume);
+```bash
+npm run dev
 ```
 
-## 4. Design Patterns
+#### Blog Site Only
 
-The project uses a component-based architecture, with reusable components for different parts of the website. It also uses a data fetching library (React Query) to manage data fetching and caching. The server uses Express.js to handle API requests.
-
-## 5. Key Components
-
-*   `App`: The main component that wraps the entire application.
-*   `Header`: The header component that displays the website title and navigation.
-*   `Footer`: The footer component that displays copyright information and social media links.
-*   `Router`: The component that defines the routes for the different pages of the website.
-*   `Home`: The home page component.
-*   `About`: The about page component.
-*   `Experience`: The experience page component.
-*   `Portfolio`: The portfolio page component.
-*   `Blog`: The blog page component.
-*   `Contact`: The contact page component.
-*   `Resume`: The resume page component.
-
-## 6. Data Flow
-
-Data is fetched using React Query from the server-side API endpoints and displayed in the different components. The data is stored in the `client/src/data` directory. The server uses a `MemStorage` class to store data in memory.
-
-## 7. Styling
-
-Tailwind CSS is used for styling the components.
-
-## 8. Server-Side Code
-
-*   The server uses Express.js to handle API requests.
-*   The `routes.ts` file defines the API endpoints.
-*   The `storage.ts` file defines the `MemStorage` class, which is used to store data in memory.
-*   The `index.ts` file is the main entry point for the server.
-*   The `vite.ts` file configures Vite for serving static assets.
-
-Here's a Mermaid diagram of the server-side architecture:
-
-```mermaid
-graph LR
-    A[index.ts] --> B(routes.ts);
-    A --> C(storage.ts);
-    A --> D(vite.ts);
-    B --> E[/api/contact];
-    B --> F[/api/blog/posts];
-    B --> G[/api/blog/post/:slug];
-    B --> H[/api/portfolio/projects];
-    B --> I[/api/cv];
-    C --> J[MemStorage];
+```bash
+cd blog
+npm run dev
 ```
 
-## 9. API Endpoints
+#### Both Together
 
-*   `/api/contact`: Handles contact form submissions.
-*   `/api/blog/posts`: Returns a list of blog posts.
-*   `/api/blog/post/:slug`: Returns a specific blog post by slug.
-*   `/api/portfolio/projects`: Returns a list of portfolio projects.
-*   `/api/cv`: Returns CV data.
-
-## 10. Client-Server Communication
-
-*   The client uses React Query to fetch data from the server.
-*   The `client/src/lib/queryClient.ts` file configures React Query and defines the `getQueryFn` function, which is used to fetch data from the server using the `fetch` API.
-*   The `apiRequest` function is a helper function that makes API requests with the specified method, URL, and data.
-*   The client sends HTTP requests to the server-side API endpoints.
-*   The server responds with JSON data.
-
-Here's a Mermaid diagram of the client-server communication:
-
-```mermaid
-graph LR
-    A[Client] --> B(React Query);
-    B --> C(fetch API);
-    C --> D[Server];
-    D --> E(Express.js);
-    E --> F(API Endpoints);
-    F --> G(MemStorage);
-    G --> D;
-    D --> C;
-    C --> B;
-    B --> A;
+```bash
+npm run dev:all
 ```
 
-## 11. Database Schema
+This command will start both the portfolio and blog sites concurrently.
 
-*   The `shared/schema.ts` file defines the database schema using Drizzle ORM.
-*   It includes schemas for users, contact messages, blog posts, portfolio projects, and CV data.
-*   The schemas define the structure of the data that is stored in memory by the `MemStorage` class.
+### Authentication Setup
 
-Here's a Mermaid diagram of the database schema:
+The blog uses Firebase Authentication for the admin area. To set this up:
 
-```mermaid
-graph LR
-    A[shared/schema.ts] --> B(users);
-    A --> C(contactMessages);
-    A --> D(blogPosts);
-    A --> E(portfolioProjects);
-    A --> F(cvData);
+1. Go to the Firebase console for your project
+2. Navigate to Authentication > Users
+3. Add a user with your email and password
+4. Use these credentials to log in to the blog admin area
+
+## Deployment
+
+The project is configured for deployment to Firebase Hosting, which will serve both the portfolio site and the blog from a single domain.
+
+### Prerequisites
+
+1. Install Firebase CLI globally (if not already installed):
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. Login to Firebase:
+   ```bash
+   firebase login
+   ```
+
+### Deployment Steps
+
+1. Build both projects:
+   ```bash
+   npm run build:all
+   ```
+   
+   This command builds both the portfolio and blog sites and organizes them in the `dist` directory with the blog site located in `dist/blog`.
+
+2. Deploy to Firebase:
+   ```bash
+   npm run deploy
+   ```
+   
+   This is a shortcut for running `npm run build:all && firebase deploy`.
+
+### Manual Deployment
+
+If you prefer to deploy manually:
+
+1. Build both projects:
+   ```bash
+   npm run build:all
+   ```
+
+2. Deploy to Firebase:
+   ```bash
+   firebase deploy
+   ```
+
+## Environment Variables
+
+Both projects require specific environment variables:
+
+### Portfolio/CV Site (.env.local)
+
+```
+# None required for static build
 ```
 
-## 12. Testing Strategy
+### Blog Site (blog/.env.local)
 
-*   The project does not have an explicit testing strategy defined.
-*   There are no testing-related files in the project.
+```
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+```
+
+## Maintenance
+
+### Adding Content
+
+- **Portfolio Content**: Update content through the Firebase Firestore database
+- **Blog Content**: Add new blog posts through the admin interface at `/blog/admin`
+
+## Notes for Future Development
+
+- The CV site is now static and does not require backend services
+- The blog uses Firebase for authentication and data storage
+- All data is managed through the Firebase console or the admin interface

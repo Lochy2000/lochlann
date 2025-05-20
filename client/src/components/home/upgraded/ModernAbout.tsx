@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { fadeIn, staggerContainer } from '@/lib/framerAnimations';
-import AnimatedGrid from './AnimatedGrid';
+import AnimatedDotGrid from './AnimatedGrid';
 
 const ModernAbout = () => {
   const skills = [
@@ -15,16 +15,14 @@ const ModernAbout = () => {
   return (
     <section className="py-16 bg-slate-50 dark:bg-slate-900 relative">
       {/* Animated Grid Background */}
-      <AnimatedGrid 
-        opacity={0.15} 
-        angle={60} 
-        spacing={25} 
-        lineWidth={1} 
-        animationSpeed={3}
-        lineColor1="#040927"
-        lineColor2="#c22938"
-        lineColor3="#e16f23"
-      />
+      <AnimatedDotGrid
+          dotColor="#ffb997"      // peachy color
+          dotRadius={1.5}
+          spacing={35}
+          animationSpeed={0.3}
+          opacityBase={0.1}
+          opacityWave={0.2}
+        />
       <div className="container mx-auto px-4">
         <motion.div 
           className="max-w-5xl mx-auto"
@@ -48,7 +46,7 @@ const ModernAbout = () => {
             >
               <div className="relative rounded-2xl overflow-hidden">
                 <img 
-                  src="https://res.cloudinary.com/dpw2txejq/image/upload/v1744655473/activites_l0ffzh.png" 
+                  src="https://res.cloudinary.com/dpw2txejq/image/upload/v1747664625/lochy-lofi_im6cyr.png" 
                   alt="Lochlann O'Higgins Activities" 
                   className="w-full h-auto rounded-2xl shadow-md transition-transform hover:scale-105 duration-500"
                 />

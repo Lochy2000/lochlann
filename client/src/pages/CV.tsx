@@ -11,12 +11,12 @@ const CV = () => {
   
   useEffect(() => {
     // Redirect to the CV file directly
-    const cvFilePath = '/attached_assets/files/Lochlann_OHiggins_CV.pdf';
+    const cvFilePath = '/attached_assets/files/cv.pdf';
     
     // Create a link and trigger download
     const link = document.createElement('a');
     link.href = cvFilePath;
-    link.download = 'Lochlann_OHiggins_CV.pdf';
+    link.download = 'cv.pdf';
     document.body.appendChild(link);
     
     // This timeout allows the redirect to happen after the component mounts

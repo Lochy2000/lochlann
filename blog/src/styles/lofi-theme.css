@@ -1,0 +1,159 @@
+/* Lo-Fi Developer Theme Styles */
+:root {
+  /* Base colors */
+  --primary: #6366f1;
+  --primary-light: #818cf8;
+  --primary-dark: #4f46e5;
+  --secondary: #8b5cf6;
+  --secondary-light: #a78bfa;
+  --secondary-dark: #6d28d9;
+  
+  /* Light theme colors */
+  --light: #f8fafc;
+  --text-body-light: #334155;
+  --text-heading-light: #1e293b;
+  --text-muted-light: #64748b;
+  
+  /* Dark theme colors */
+  --dark: #0f172a;
+  --darker: #020617;
+  --text-body-dark: #e2e8f0;
+  --text-heading-dark: #f8fafc;
+  --text-muted-dark: #94a3b8;
+  
+  /* Code colors */
+  --code-bg: #1e293b;
+  --code-text: #e2e8f0;
+  
+  /* Coffee theme */
+  --coffee-light: #d4a276;
+  --coffee: #9c6644;
+  --coffee-dark: #7c5236;
+  
+  /* Lofi special colors */
+  --lofi-blue: #60a5fa;
+  --lofi-pink: #f472b6;
+  --lofi-purple: #c084fc;
+  --lofi-terminal: #1e293b;
+  --lofi-paper: #f8fafc;
+}
+
+/* Light mode variables */
+:root {
+  --text-body: var(--text-body-light);
+  --text-heading: var(--text-heading-light);
+  --text-muted: var(--text-muted-light);
+  --background: var(--light);
+}
+
+/* Dark mode variables */
+.dark {
+  --text-body: var(--text-body-dark);
+  --text-heading: var(--text-heading-dark);
+  --text-muted: var(--text-muted-dark);
+  --background: var(--dark);
+}
+
+/* Lo-Fi Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lofi-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
+}
+
+/* Gradient text effects */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+}
+
+/* Terminal typing effect */
+.typing-effect {
+  overflow: hidden;
+  border-right: 0.15em solid var(--primary);
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent }
+  50% { border-color: var(--primary) }
+}
+
+/* Custom scrollbar for Lo-Fi theme */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Code line numbers */
+.code-snippet pre {
+  counter-reset: line;
+}
+
+.code-snippet pre .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.5rem;
+  margin-right: 1rem;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Nightscape background for dark mode */
+.nightscape-bg {
+  background: linear-gradient(to bottom, #0f172a, #1e293b);
+  background-size: 100% 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.coffee-gradient-bg {
+  background: linear-gradient(135deg, var(--coffee-light) 0%, var(--coffee) 50%, var(--coffee-dark) 100%);
+  background-size: 200% 200%;
+  animation: coffee-wave 15s ease infinite;
+}
+
+@keyframes coffee-wave {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

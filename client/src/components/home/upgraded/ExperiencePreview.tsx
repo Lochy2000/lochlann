@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaArrowRight } from 'react-icons/fa';
 import { fadeIn, staggerContainer } from '@/lib/framerAnimations';
 import { experiences } from '@/data/experience';
-import AnimatedGrid from './AnimatedGrid';
+import AnimatedDotGrid from './AnimatedGrid';
 
 const ExperiencePreview = () => {
   // Get only the most recent 3 experiences
@@ -12,16 +12,14 @@ const ExperiencePreview = () => {
   return (
     <section className="py-16 bg-white dark:bg-slate-900 relative">
       {/* Animated Grid Background */}
-      <AnimatedGrid 
-        opacity={0.1} 
-        angle={30} 
-        spacing={30} 
-        lineWidth={1} 
-        animationSpeed={2}
-        lineColor1="#040927"
-        lineColor2="#c22938"
-        lineColor3="#e16f23"
-      />
+      <AnimatedDotGrid
+          dotColor="#ffb997"      // peachy color
+          dotRadius={1.5}
+          spacing={35}
+          animationSpeed={0.3}
+          opacityBase={0.1}
+          opacityWave={0.2}
+        />
       <div className="container mx-auto px-4">
         <motion.div 
           className="max-w-5xl mx-auto"

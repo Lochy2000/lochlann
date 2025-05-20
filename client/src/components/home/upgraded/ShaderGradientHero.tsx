@@ -70,9 +70,9 @@ const ShaderGradientHero = () => {
       varying vec2 v_texCoord;
       
       // Your specified colors
-      vec3 color1 = vec3(0.016, 0.035, 0.153); // #040927
-      vec3 color2 = vec3(0.761, 0.161, 0.22);  // #c22938
-      vec3 color3 = vec3(0.882, 0.435, 0.137); // #e16f23
+      vec3 color1 = vec3(0.169, 0.024, 0.361); //rgb(43, 6, 92)
+      vec3 color2 = vec3(0.439, 0.161, 0.761);  //rgb(112, 41, 194)
+      vec3 color3 = vec3(0.882, 0.435, 0.137); //rgb(150, 31, 10)
       
       // Noise functions
       // Hash function
@@ -390,7 +390,7 @@ const ShaderGradientHero = () => {
             <div className="relative w-64 h-64 md:w-96 md:h-96">
               <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-md blur-2xl"></div>
               <img 
-                src="https://res.cloudinary.com/dpw2txejq/image/upload/v1744655473/loch_qcgqjw.png"
+                src="https://res.cloudinary.com/dpw2txejq/image/upload/v1747665372/PHOTO-2023-07-05-07-00-24_r3bchf.jpg"
                 alt="Lochlann O'Higgins" 
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full border-4 border-white/20 shadow-xl z-10 relative"
               />
@@ -400,8 +400,8 @@ const ShaderGradientHero = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
               >
-                <span className="text-white font-mono font-bold">5+ Years</span>
-                <span className="block text-white/80 text-sm">Web Development</span>
+                <span className="text-white font-mono font-bold">Junior</span>
+                <span className="block text-white/80 text-sm">Web Developer</span>
               </motion.div>
             </div>
           </motion.div>

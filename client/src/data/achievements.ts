@@ -37,7 +37,7 @@ export const achievements = [
   },
   {
     title: 'PADI Diver',
-    description: 'Licensed free diver and scuba diver, exploring up to 15m underwater.',
+    description: 'Licensed free diver and scuba diver, exploring up to 30m underwater.',
     icon: FaWater
   },
   {
@@ -45,9 +45,4 @@ export const achievements = [
     description: 'Current player for the Harlequins Wheelchair Rugby Team.',
     icon: FaWheelchair
   },
-  {
-    title: 'Global Citizen',
-    description: 'Lived in multiple countries, bringing a unique global perspective to work and life.',
-    icon: FaGlobeEurope
-  }
 ];

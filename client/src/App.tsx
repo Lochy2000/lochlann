@@ -10,7 +10,6 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
-import Home from "@/pages/Home";
 import UpgradedHome from "@/pages/UpgradedHome";
 import About from "@/pages/About";
 import Experience from "@/pages/Experience";
@@ -53,7 +52,6 @@ const router = createBrowserRouter(
     <>
       <Route path="/" element={<Layout />}>
         <Route index element={<UpgradedHome />} />
-        <Route path="classic" element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="experience" element={<Experience />} />
         <Route path="portfolio" element={<Portfolio showAll={true} />} />

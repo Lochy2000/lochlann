@@ -77,7 +77,7 @@ const Resume = () => {
                 </div>
                 <div className="mt-4">
                   <p className="text-slate-600 dark:text-slate-300">
-                    I'm a developer and coach with a passion for building impactful tech and uplifting communities through sport and innovation. From leading web projects and winning hackathons to coaching table tennis and wheelchair rugby league, I bring energy and adaptability into everything I do.
+                    I'm a frontend-focused developer and coach driven by impact, creativity, and community. Whether I’m building tech with AI tools, leading winning hackathon projects, or coaching wheelchair rugby and table tennis, I bring adaptability, energy, and purpose into everything I do. I’m especially passionate about using technology to solve real-world problems and create meaningful user experiences.
                   </p>
                 </div>
               </motion.section>

@@ -1,0 +1,61 @@
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      
+      # Install dependencies for main project
+      - name: Install main project dependencies
+        run: npm ci
+      
+      # Install dependencies for blog project
+      - name: Install blog project dependencies
+        run: |
+          cd blog
+          npm ci
+          cd ..
+      
+      # Create Firebase environment file
+      - name: Create Firebase environment file
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
+        run: |
+          echo "VITE_FIREBASE_API_KEY=$FIREBASE_API_KEY" > blog/.env.production
+          echo "VITE_FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN" >> blog/.env.production
+          echo "VITE_FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> blog/.env.production
+          echo "VITE_FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET" >> blog/.env.production
+          echo "VITE_FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID" >> blog/.env.production
+          echo "VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID" >> blog/.env.production
+          echo "VITE_FIREBASE_MEASUREMENT_ID=$FIREBASE_MEASUREMENT_ID" >> blog/.env.production
+      
+      # Build both projects
+      - name: Build projects
+        run: npm run build:all
+      
+      # Deploy to Firebase
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
