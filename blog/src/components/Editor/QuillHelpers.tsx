@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 
 // A custom Quill module to add image URL handling
 // Can be enhanced in the future for better image management
-export const customImageHandler = () => {
-  const range = this.quill.getSelection();
+export const customImageHandler = function(this: any) {
+  const range = this.quill?.getSelection();
   const value = prompt('Please enter the image URL:');
   
   if(value && range) {
-    this.quill.insertEmbed(range.index, 'image', value, 'user');
+    this.quill?.insertEmbed(range.index, 'image', value, 'user');
   }
 };
 

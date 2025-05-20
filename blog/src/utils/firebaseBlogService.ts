@@ -19,9 +19,7 @@ const db = getFirestore(app);
 
 // Enable offline persistence
 try {
-  enableIndexedDbPersistence(db, {
-    cacheSizeBytes: CACHE_SIZE_UNLIMITED
-  }).catch((err) => {
+  enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
       // Multiple tabs open, persistence can only be enabled in one tab at a time
       console.warn('Firebase persistence failed: Multiple tabs open');

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { FaCalendarAlt, FaClock, FaTag, FaCoffee, FaCode, FaTerminal, FaSearch } from 'react-icons/fa';
 import { firebaseBlogService, type BlogPost } from '../utils/firebaseBlogService';
+import ParallaxVideo from '../components/ParallaxVideo';
 
 // Animation variants
 const containerVariants = {
@@ -26,8 +27,24 @@ const itemVariants = {
   }
 };
 
+// Type without the required fields for easier mock data
+type MockBlogPost = Partial<BlogPost> & {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  coverImage: string;
+  date: string;
+  readTime: string;
+  category: string;
+  categorySlug: string;
+  categoryColor: string;
+  tags: string[];
+  featured: boolean;
+};
+
 // Backup mock blog post data in case API fails
-const mockBlogPosts = [
+const mockBlogPosts: MockBlogPost[] = [
   {
     id: '1',
     slug: 'choosing-right-tech-stack',
@@ -75,7 +92,7 @@ const Blog: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch blog posts from Firebase
-  const { data: blogPosts, isLoading, error } = useQuery({
+  const { data: blogPosts, isLoading, error } = useQuery<(BlogPost | MockBlogPost)[]>({
     queryKey: ['blog-posts'],
     queryFn: async () => {
       try {
@@ -127,26 +144,32 @@ const Blog: React.FC = () => {
         <meta name="keywords" content="web development, coding tutorials, javascript, typescript, react, databases, developer blog, lo-fi coding" />
       </Helmet>
       
+      {/* Parallax Video Background */}
+      <ParallaxVideo
+        videoSrc="https://res.cloudinary.com/dpw2txejq/video/upload/v1747743810/lofi-bg_llx3on.mp4"
+        overlayOpacity={0.6}
+      />
+      
       <div className="mt-16 md:mt-20">
         {/* Hero Section */}
         <motion.section 
-          className="px-4 py-12 md:py-20 text-center relative overflow-hidden"
+          className="px-4 py-12 md:py-20 text-center relative overflow-hidden z-10"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          <div className="max-w-4xl mx-auto relative z-10">
+          <div className="max-w-4xl mx-auto relative z-10 bg-slate-900/50 p-8 rounded-xl border border-purple-500/20 shadow-neon-purple backdrop-blur-md">
             <motion.h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-space text-slate-900 dark:text-white"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-space text-white"
               variants={itemVariants}
             >
-              <span className="gradient-text">{"<"}</span>
+              <span className="text-purple-400">{"<"}</span>
               Lochlann's Tech Blog
-              <span className="gradient-text">{"/>"}</span>
+              <span className="text-purple-400">{"/>"}</span>
             </motion.h1>
             
             <motion.p 
-              className="text-xl text-slate-700 dark:text-slate-300 mb-8 max-w-2xl mx-auto"
+              className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto"
               variants={itemVariants}
             >
               Tutorials, insights, and musings on web development, AI, and lo-fi aesthetics. 
@@ -158,42 +181,42 @@ const Blog: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search articles..."
-                  className="lofi-input flex-grow"
+                  className="lofi-input flex-grow bg-slate-800/70 text-white border border-blue-500/20 focus:border-blue-400/70 focus:ring-1 focus:ring-blue-400"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <button className="lofi-button ml-2 px-4">
+                <button className="lofi-button ml-2 px-4 bg-blue-600 hover:bg-blue-500 text-white shadow-neon border border-blue-400/30">
                   <FaSearch className="mr-2 inline-block" /> Search
                 </button>
               </form>
             </motion.div>
             
             <motion.div 
-              className="flex flex-wrap justify-center gap-2 mb-4"
-              variants={itemVariants}
+            className="flex flex-wrap justify-center gap-2 mb-4"
+            variants={itemVariants}
             >
-              {categories.map(category => (
-                <button
-                  key={category.slug}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === category.slug
-                      ? 'bg-primary text-white shadow-lofi'
-                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
-                  }`}
-                  onClick={() => setSelectedCategory(category.slug)}
-                >
-                  {category.name}
-                </button>
-              ))}
+            {categories.map(category => (
+            <button
+            key={category.slug}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+            selectedCategory === category.slug
+            ? 'bg-purple-600 text-white shadow-neon-purple border border-purple-400/50'
+            : 'bg-slate-800/80 text-slate-300 border border-slate-600/50 hover:bg-slate-700/90 hover:border-purple-500/30'
+            }`}
+            onClick={() => setSelectedCategory(category.slug)}
+            >
+            {category.name}
+            </button>
+            ))}
             </motion.div>
           </div>
         </motion.section>
         
         {/* Featured Posts Section */}
         {featuredPosts && featuredPosts.length > 0 && selectedCategory === 'all' && !searchQuery && (
-          <section className="py-12 bg-slate-50 dark:bg-slate-900/30">
+          <section className="py-12 bg-slate-900/40 backdrop-blur-md border-t border-b border-blue-500/10">
             <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold mb-8 font-space text-slate-900 dark:text-white">
+              <h2 className="text-3xl font-bold mb-8 font-space text-white">
                 Featured Posts
               </h2>
               
@@ -204,10 +227,10 @@ const Blog: React.FC = () => {
                     to={`/post/${post.slug}`}
                     className="block group"
                   >
-                    <article className="bg-white dark:bg-lofi-terminal h-full rounded-xl overflow-hidden shadow-lofi hover:shadow-lofi-lg transform hover:-translate-y-1 transition-all duration-300">
+                    <article className="bg-white/80 dark:bg-lofi-terminal/80 h-full rounded-xl overflow-hidden shadow-neon hover:shadow-neon-lg transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
                       <div className="h-60 overflow-hidden relative">
                         <img 
-                          src={post.coverImage || post.image} 
+                          src={post.coverImage || ('image' in post ? post.image : '')}
                           alt={post.title}
                           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                         />
@@ -246,9 +269,9 @@ const Blog: React.FC = () => {
         )}
         
         {/* All Posts Section */}
-        <section className="py-12">
+        <section className="py-12 bg-slate-900/30 backdrop-blur-md">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-8 font-space text-slate-900 dark:text-white">
+            <h2 className="text-3xl font-bold mb-8 font-space text-white">
               {searchQuery 
                 ? `Search Results for "${searchQuery}"`
                 : selectedCategory !== 'all'
@@ -292,10 +315,10 @@ const Blog: React.FC = () => {
                       to={`/post/${post.slug}`}
                       className="block group h-full"
                     >
-                      <article className="lofi-card h-full flex flex-col">
+                      <article className="lofi-card h-full flex flex-col bg-white/80 dark:bg-lofi-terminal/80 backdrop-blur-sm shadow-neon hover:shadow-neon-lg">
                         <div className="h-48 overflow-hidden rounded-lg mb-4 relative">
                           <img 
-                            src={post.coverImage || post.image} 
+                            src={post.coverImage || ('image' in post ? post.image : '')}
                             alt={post.title}
                             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                           />
@@ -357,14 +380,14 @@ const Blog: React.FC = () => {
         </section>
         
         {/* Newsletter Section */}
-        <section className="py-16 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <section className="py-16 bg-gradient-to-br from-purple-900/50 to-slate-900/50 backdrop-blur-md border-t border-purple-500/10">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <FaCoffee className="text-4xl text-coffee mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4 font-space text-slate-900 dark:text-white">
+              <FaCoffee className="text-4xl text-purple-400 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold mb-4 font-space text-white">
                 Join the Devs & Coffee Newsletter
               </h2>
-              <p className="text-slate-600 dark:text-slate-300 mb-8">
+              <p className="text-slate-300 mb-8">
                 Get the latest articles, tutorials, and lo-fi coding inspiration delivered straight to your inbox. No spam, just dev goodness.
               </p>
               
@@ -372,9 +395,9 @@ const Blog: React.FC = () => {
                 <input
                   type="email"
                   placeholder="your@email.com"
-                  className="lofi-input flex-grow"
+                  className="lofi-input flex-grow bg-slate-800/70 text-white border border-purple-500/20 focus:border-purple-400/70 focus:ring-1 focus:ring-purple-400"
                 />
-                <button className="lofi-button">
+                <button className="lofi-button bg-purple-600 hover:bg-purple-500 text-white shadow-neon-purple border border-purple-400/30">
                   Subscribe
                 </button>
               </div>

@@ -57,7 +57,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     quill.insertEmbed(range.index, 'image', url, 'user');
     
     // Move cursor after the image
-    quill.setSelection(range.index + 1);
+    quill.setSelection({ index: range.index + 1, length: 0 });
   };
 
   if (!mounted) {

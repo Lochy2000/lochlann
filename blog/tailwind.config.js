@@ -88,6 +88,10 @@ export default {
       boxShadow: {
         'lofi': '4px 4px 0px 0px rgba(0, 0, 0, 0.2)',
         'lofi-lg': '8px 8px 0px 0px rgba(0, 0, 0, 0.2)',
+        'neon': '0 0 5px rgba(64, 195, 255, 0.5), 0 0 10px rgba(64, 195, 255, 0.2)',
+        'neon-lg': '0 0 10px rgba(64, 195, 255, 0.6), 0 0 20px rgba(64, 195, 255, 0.3), 0 0 30px rgba(64, 195, 255, 0.1)',
+        'neon-purple': '0 0 5px rgba(196, 84, 252, 0.5), 0 0 10px rgba(196, 84, 252, 0.2)',
+        'neon-purple-lg': '0 0 10px rgba(196, 84, 252, 0.6), 0 0 20px rgba(196, 84, 252, 0.3), 0 0 30px rgba(196, 84, 252, 0.1)',
       },
     },
   },

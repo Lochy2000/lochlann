@@ -19,7 +19,30 @@ const fadeIn = {
 };
 
 // Mock data for fallback
-const mockBlogPosts: BlogPostType[] = [
+// Type without the required fields for easier mock data
+type MockBlogPost = Partial<BlogPostType> & {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  coverImage: string;
+  date: string;
+  readTime: string;
+  category: string;
+  categorySlug: string;
+  categoryColor: string;
+  tags: string[];
+  featured: boolean;
+  relatedPosts: string[];
+  author: {
+    name: string;
+    bio: string;
+    image: string;
+  };
+};
+
+const mockBlogPosts: MockBlogPost[] = [
   {
     id: '1',
     slug: 'choosing-right-tech-stack',
@@ -126,7 +149,10 @@ export default UserList;
       name: 'Lochlann O\'Higgins',
       image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png',
       bio: 'Junior developer with a passion for web technologies and lo-fi aesthetics.'
-    }
+    },
+    published: true,
+    createdAt: '2025-05-15T12:00:00Z',
+    updatedAt: '2025-05-15T12:00:00Z'
   },
   {
     id: '2',
@@ -263,7 +289,10 @@ Users Table:
       name: 'Lochlann O\'Higgins',
       image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png',
       bio: 'Junior developer with a passion for web technologies and lo-fi aesthetics.'
-    }
+    },
+    published: true,
+    createdAt: '2025-05-12T12:00:00Z', 
+    updatedAt: '2025-05-12T12:00:00Z'
   }
 ];
 
@@ -275,13 +304,13 @@ const defaultAuthor = {
 };
 
 // Find related posts
-const getRelatedPosts = (postId: string, allPosts: BlogPostType[]) => {
+const getRelatedPosts = (postId: string, allPosts: (BlogPostType | MockBlogPost)[]) => {
   const currentPost = allPosts.find(post => post.id === postId);
   if (!currentPost?.relatedPosts) return [];
   
   return currentPost.relatedPosts.map((id: string) => 
     allPosts.find(post => post.id === id)
-  ).filter(Boolean) as BlogPostType[];
+  ).filter(Boolean) as (BlogPostType | MockBlogPost)[];
 };
 
 const BlogPost: React.FC = () => {
@@ -289,7 +318,7 @@ const BlogPost: React.FC = () => {
   const navigate = useNavigate();
   
   // Fetch all posts for related post functionality
-  const { data: allPosts, isLoading: allPostsLoading } = useQuery<BlogPostType[]>({
+  const { data: allPosts, isLoading: allPostsLoading } = useQuery<(BlogPostType | MockBlogPost)[]>({
     queryKey: ['blog-posts'],
     queryFn: async () => {
       try {
@@ -313,7 +342,7 @@ const BlogPost: React.FC = () => {
   });
   
   // Fetch the specific blog post by slug
-  const { data: post, isLoading, error } = useQuery<BlogPostType>({
+  const { data: post, isLoading, error } = useQuery<BlogPostType | MockBlogPost>({
     queryKey: [`blog/post/${slug}`],
     queryFn: async () => {
       try {
@@ -393,12 +422,12 @@ const BlogPost: React.FC = () => {
         <meta name="keywords" content={tags.join(', ')} />
         <meta property="og:title" content={`${post.title} | Lochlann's Tech Blog`} />
         <meta property="og:description" content={post.excerpt} />
-        <meta property="og:image" content={post.coverImage || post.image} />
+        <meta property="og:image" content={post.coverImage || ('image' in post ? post.image : '')} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={post.title} />
         <meta name="twitter:description" content={post.excerpt} />
-        <meta name="twitter:image" content={post.coverImage || post.image} />
+        <meta name="twitter:image" content={post.coverImage || ('image' in post ? post.image : '')} />
       </Helmet>
       
       <div className="mt-16 pb-20">
@@ -406,7 +435,7 @@ const BlogPost: React.FC = () => {
         <div className="w-full h-[60vh] relative">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-dark/90 z-10"></div>
           <img 
-            src={post.coverImage || post.image} 
+            src={post.coverImage || ('image' in post ? post.image : '')} 
             alt={post.title} 
             className="w-full h-full object-cover"
           />
@@ -545,7 +574,7 @@ const BlogPost: React.FC = () => {
                   </h3>
                   
                   <div className="space-y-4">
-                    {relatedPosts.map((relatedPost: BlogPostType) => relatedPost && (
+                    {relatedPosts.map((relatedPost) => relatedPost && (
                       <Link 
                         key={relatedPost.id}
                         to={`/post/${relatedPost.slug}`}
@@ -553,7 +582,7 @@ const BlogPost: React.FC = () => {
                       >
                         <div className="flex gap-3">
                           <img 
-                            src={relatedPost.coverImage || relatedPost.image}
+                            src={relatedPost.coverImage || ('image' in relatedPost ? relatedPost.image : '')}
                             alt={relatedPost.title}
                             className="w-20 h-20 object-cover rounded-lg shadow-lofi"
                           />
@@ -579,7 +608,7 @@ const BlogPost: React.FC = () => {
                 </h3>
                 
                 <div className="flex flex-wrap gap-2">
-                  {Array.from(new Set(allPosts?.flatMap((post: BlogPostType) => Array.isArray(post.tags) && post.tags ? post.tags : []) || [])).map((tag: string) => (
+                  {Array.from(new Set(allPosts?.flatMap((post) => Array.isArray(post.tags) && post.tags ? post.tags : []) || [])).map((tag: string) => (
                     <Link
                       key={tag}
                       to={`/tags/${tag}`}

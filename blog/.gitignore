@@ -9,7 +9,7 @@ lerna-debug.log*
 
 # Environment variables
 .env
-.env.local
+.env.production
 .env.*
 !.env.example
 
@@ -34,9 +34,3 @@ dist-ssr
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
-
-# Build files
-/server/public
-
-# Archives
-*.tar.gz
