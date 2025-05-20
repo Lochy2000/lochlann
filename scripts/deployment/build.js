@@ -2,6 +2,7 @@
 /**
  * Unified build script for the entire project.
  * This script builds both the CV and blog parts of the site.
+ * Optimized for Vercel deployment.
  * 
  * Usage:
  *   node scripts/deployment/build.js
@@ -21,13 +22,17 @@ const projectRoot = path.resolve(__dirname, '../../');
 const cvPath = projectRoot;
 const blogPath = path.join(projectRoot, 'blog');
 
-// Output directory for the unified build
-const outputDir = path.join(projectRoot, 'dist');
+// Output directories
+const mainOutputDir = path.join(projectRoot, 'dist');
+const publicOutputDir = path.join(mainOutputDir, 'public');
+const blogOutputDir = path.join(mainOutputDir, 'blog');
 
-// Create the output directory if it doesn't exist
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
+// Create the output directories if they don't exist
+[mainOutputDir, publicOutputDir, blogOutputDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 // Function to run a command in a specific directory
 function runCommand(command, args, cwd) {
@@ -72,6 +77,26 @@ function copyDirectory(source, destination) {
   }
 }
 
+// Function to create a simple index.html redirect file
+function createIndexRedirect() {
+  const indexPath = path.join(mainOutputDir, 'index.html');
+  const content = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="refresh" content="0;url=/public/index.html">
+    <title>Redirecting...</title>
+  </head>
+  <body>
+    Redirecting to main site...
+  </body>
+</html>
+  `.trim();
+  
+  fs.writeFileSync(indexPath, content);
+  console.log(`Created redirect at ${indexPath}`);
+}
+
 async function build() {
   try {
     // Build the main CV/Portfolio site
@@ -82,23 +107,48 @@ async function build() {
     console.log('Building Blog...');
     await runCommand('npm', ['run', 'build'], blogPath);
     
-    // Copy main site build to the output directory
-    console.log('Copying main site build to output directory...');
-    // Assume the vite build output is in the 'dist' directory
-    copyDirectory(path.join(cvPath, 'dist'), outputDir);
-    
-    // Create a blog directory in the output directory
-    const blogOutputDir = path.join(outputDir, 'blog');
-    if (!fs.existsSync(blogOutputDir)) {
-      fs.mkdirSync(blogOutputDir, { recursive: true });
+    // Copy main site build to the public directory
+    console.log('Copying main site build to public directory...');
+    const clientBuildDir = path.join(cvPath, 'dist', 'public');
+    if (fs.existsSync(clientBuildDir)) {
+      copyDirectory(clientBuildDir, publicOutputDir);
+    } else {
+      console.warn('Warning: Main site build directory not found at expected location:', clientBuildDir);
+      console.warn('Checking alternate location...');
+      
+      // Try alternate location
+      const altBuildDir = path.join(cvPath, 'client', 'dist');
+      if (fs.existsSync(altBuildDir)) {
+        copyDirectory(altBuildDir, publicOutputDir);
+      } else {
+        console.error('Error: Could not find main site build directory');
+        process.exit(1);
+      }
     }
     
     // Copy blog build to the blog directory
-    console.log('Copying blog build to output directory...');
-    copyDirectory(path.join(blogPath, 'dist'), blogOutputDir);
+    console.log('Copying blog build to blog directory...');
+    const blogBuildDir = path.join(blogPath, 'dist');
+    if (fs.existsSync(blogBuildDir)) {
+      copyDirectory(blogBuildDir, blogOutputDir);
+    } else {
+      console.error('Error: Could not find blog build directory:', blogBuildDir);
+      process.exit(1);
+    }
+    
+    // Create index.html redirect in the root
+    createIndexRedirect();
+    
+    // Create a .vercel directory to indicate this is a static site
+    const vercelDir = path.join(mainOutputDir, '.vercel');
+    if (!fs.existsSync(vercelDir)) {
+      fs.mkdirSync(vercelDir, { recursive: true });
+    }
     
     console.log('Build completed successfully!');
-    console.log(`The unified build is available in: ${outputDir}`);
+    console.log(`The unified build is available in: ${mainOutputDir}`);
+    console.log(`Main site: ${publicOutputDir}`);
+    console.log(`Blog: ${blogOutputDir}`);
   } catch (error) {
     console.error('Build failed:', error);
     process.exit(1);

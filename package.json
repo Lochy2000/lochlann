@@ -8,6 +8,8 @@
     "dev:all": "node dev.js",
     "build": "vite build",
     "build:all": "node scripts/deployment/build.js",
+    "vercel-build": "npm run build:all",
+    "check-vercel": "node scripts/check-vercel-build.js",
     "deploy": "npm run build:all && firebase deploy",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",

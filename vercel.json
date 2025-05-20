@@ -3,9 +3,16 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node",
+      "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm run build:all"
+        "distDir": "dist/public"
+      }
+    },
+    {
+      "src": "blog/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/blog"
       }
     }
   ],
@@ -15,8 +22,11 @@
       "dest": "/blog/$1"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/index.html"
     }
   ],
   "env": {
