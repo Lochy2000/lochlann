@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
@@ -36,7 +36,21 @@ const App: React.FC = () => {
   const isLocalDevelopment = window.location.port === "5001";
   const basename = isLocalDevelopment ? "" : "/blog";
   
+  // Parse hash for direct access
+  const hashPath = window.location.hash ? window.location.hash.substring(1) : '';
+  
   console.log('Using basename:', basename);
+  console.log('Hash path (if any):', hashPath);
+  
+  useEffect(() => {
+    // Check if we have a hash-based route
+    if (window.location.hash && window.location.hash.startsWith('#/admin')) {
+      console.log('Detected admin hash route, redirecting...');
+      const adminPath = window.location.hash.substring(1); // Remove the # character
+      window.history.replaceState(null, '', adminPath);
+      window.location.reload();
+    }
+  }, []);
   
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal | Lochlann's Tech Blog</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        header {
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            background-color: rgba(30, 41, 59, 0.8);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        a {
+            display: block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            text-decoration: none;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        a:hover {
+            background-color: #2563eb;
+        }
+        .info {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; align-items: center;">
+            <img src="https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 12px;">
+            <h2>Lochlann's Tech Blog</h2>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <h1>Admin Access</h1>
+            <a href="/blog/index.html#/admin">Go to Admin Dashboard</a>
+            <a href="/blog/index.html">Return to Blog</a>
+            <p class="info">This page provides direct access to the admin dashboard. If you're experiencing issues with the main admin route, this alternative path should work.</p>
+        </div>
+    </main>
+</body>
+</html>
