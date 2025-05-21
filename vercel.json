@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "headers": [
     {
-      "source": "/public/assets/(.*\\.js)",
+      "source": "/(.*)\\.js",
       "headers": [
         {
           "key": "Content-Type",
@@ -12,25 +12,7 @@
       ]
     },
     {
-      "source": "/public/assets/(.*\\.css)",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/css"
-        }
-      ]
-    },
-    {
-      "source": "/blog/assets/(.*\\.js)",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        }
-      ]
-    },
-    {
-      "source": "/blog/assets/(.*\\.css)",
+      "source": "/(.*)\\.css",
       "headers": [
         {
           "key": "Content-Type",
@@ -40,15 +22,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/public" },
-    { "source": "/public", "destination": "/public/index.html" },
-    { "source": "/public/(.*)", "destination": "/public/$1" },
+    { "source": "/", "destination": "/public/index.html" },
     { "source": "/assets/(.*)", "destination": "/public/assets/$1" },
-    { "source": "/blog", "destination": "/blog/index.html" },
-    { "source": "/blog/(.*)", "destination": "/blog/$1" }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+    { "source": "/blog", "destination": "/blog/index.html" }
   ]
 }

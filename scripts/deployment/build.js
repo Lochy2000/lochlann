@@ -123,27 +123,37 @@ function fixBlogIndexPaths() {
 
 // Function to create a root index.html that redirects to the portfolio
 function createRootRedirect() {
-  const indexPath = path.join(mainOutputDir, 'index.html');
-  const content = `
+  // First, let's see if we can just copy the public/index.html to root
+  const publicIndexPath = path.join(publicOutputDir, 'index.html');
+  const rootIndexPath = path.join(mainOutputDir, 'index.html');
+  
+  if (fs.existsSync(publicIndexPath)) {
+    // Copy the portfolio index.html to the root
+    fs.copyFileSync(publicIndexPath, rootIndexPath);
+    console.log(`Copied portfolio index.html to root`);
+  } else {
+    // Fallback to a redirect
+    const content = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0;url=/public">
+    <meta http-equiv="refresh" content="0;url=/public/index.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting to Portfolio...</title>
     <script>
-        window.location.href = "/public";
+        window.location.href = "/public/index.html";
     </script>
 </head>
 <body>
     <p>Redirecting to portfolio...</p>
 </body>
 </html>
-  `.trim();
-  
-  fs.writeFileSync(indexPath, content);
-  console.log(`Created redirect at ${indexPath}`);
+    `.trim();
+    
+    fs.writeFileSync(rootIndexPath, content);
+    console.log(`Created redirect at ${rootIndexPath}`);
+  }
 }
 
 async function build() {
