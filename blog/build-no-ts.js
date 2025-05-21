@@ -47,6 +47,27 @@ console.log(`- package.json: ${fs.existsSync(packageJsonPath) ? '✓ Found' : '�
 console.log(`- .env: ${fs.existsSync(envPath) ? '✓ Found' : '✗ Missing'}`);
 console.log(`- .env.production: ${fs.existsSync(envProductionPath) ? '✓ Found' : '✗ Missing'}`);
 
+// Function to run a command
+function runCommand(command, args, cwd) {
+  return new Promise((resolve, reject) => {
+    console.log(`Running command: ${command} ${args.join(' ')} in ${cwd}`);
+    
+    const child = spawn(command, args, {
+      cwd,
+      stdio: 'inherit',
+      shell: true
+    });
+    
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Command failed with code ${code}`));
+      }
+    });
+  });
+}
+
 // Add copyDirectory function
 function copyDirectory(source, destination) {
   if (!fs.existsSync(destination)) {
