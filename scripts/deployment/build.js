@@ -77,21 +77,73 @@ function copyDirectory(source, destination) {
   }
 }
 
-// Helper function to list all files in a directory recursively
-function listAllFiles(dir, fileList = []) {
-  const files = fs.readdirSync(dir);
-  
-  files.forEach(file => {
-    const filePath = path.join(dir, file);
+// Function to fix paths in portfolio index.html
+function fixPortfolioIndexPaths() {
+  const indexPath = path.join(publicOutputDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    console.log(`Fixing asset paths in ${indexPath}`);
+    let content = fs.readFileSync(indexPath, 'utf8');
     
-    if (fs.statSync(filePath).isDirectory()) {
-      fileList = listAllFiles(filePath, fileList);
-    } else {
-      fileList.push(filePath);
-    }
-  });
+    // Fix asset paths
+    content = content.replace(/src="\/assets\//g, 'src="/public/assets/');
+    content = content.replace(/href="\/assets\//g, 'href="/public/assets/');
+    
+    // Remove base tag which might be causing issues
+    content = content.replace(/<base[^>]*>/, '');
+    
+    // Write the file back
+    fs.writeFileSync(indexPath, content);
+    console.log('Portfolio asset paths fixed');
+  } else {
+    console.error(`Could not find index.html at ${indexPath}`);
+  }
+}
+
+// Function to fix paths in blog index.html
+function fixBlogIndexPaths() {
+  const indexPath = path.join(blogOutputDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    console.log(`Fixing asset paths in ${indexPath}`);
+    let content = fs.readFileSync(indexPath, 'utf8');
+    
+    // Fix asset paths
+    content = content.replace(/src="\/assets\//g, 'src="/blog/assets/');
+    content = content.replace(/href="\/assets\//g, 'href="/blog/assets/');
+    
+    // Remove base tag which might be causing issues
+    content = content.replace(/<base[^>]*>/, '');
+    
+    // Write the file back
+    fs.writeFileSync(indexPath, content);
+    console.log('Blog asset paths fixed');
+  } else {
+    console.error(`Could not find blog index.html at ${indexPath}`);
+  }
+}
+
+// Function to create a root index.html that redirects to the portfolio
+function createRootRedirect() {
+  const indexPath = path.join(mainOutputDir, 'index.html');
+  const content = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0;url=/public">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to Portfolio...</title>
+    <script>
+        window.location.href = "/public";
+    </script>
+</head>
+<body>
+    <p>Redirecting to portfolio...</p>
+</body>
+</html>
+  `.trim();
   
-  return fileList;
+  fs.writeFileSync(indexPath, content);
+  console.log(`Created redirect at ${indexPath}`);
 }
 
 async function build() {
@@ -133,56 +185,12 @@ async function build() {
       process.exit(1);
     }
     
-    // List all files in the public directory for debugging
-    console.log('Files in public directory:');
-    const publicFiles = listAllFiles(publicOutputDir);
-    publicFiles.forEach(file => {
-      console.log(`  - ${file.replace(publicOutputDir, '')}`);
-    });
+    // Fix asset paths
+    fixPortfolioIndexPaths();
+    fixBlogIndexPaths();
     
-    // Create a test index.html file in the dist directory
-    const indexPath = path.join(mainOutputDir, 'index.html');
-    const indexContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lochlann O'Higgins Portfolio</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 { color: #333; }
-        a { 
-            display: inline-block;
-            margin: 10px 0;
-            padding: 10px 15px;
-            background-color: #0070f3;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Welcome to Lochlann's Portfolio</h1>
-    <p>Please select where you'd like to go:</p>
-    <div>
-        <a href="/public/index.html">View Portfolio</a>
-    </div>
-    <div>
-        <a href="/blog/index.html">View Blog</a>
-    </div>
-</body>
-</html>
-    `.trim();
-    
-    fs.writeFileSync(indexPath, indexContent);
-    console.log(`Created test index.html at ${indexPath}`);
+    // Create root redirect
+    createRootRedirect();
     
     console.log('Build completed successfully!');
     console.log(`The unified build is available in: ${mainOutputDir}`);
