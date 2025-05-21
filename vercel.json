@@ -1,7 +1,12 @@
 {
-  "version": 2,
+  "trailingSlash": false,
+  "cleanUrls": true,
   "rewrites": [
-    { "source": "/blog/(.*)", "destination": "/blog/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/public", "destination": "/public/index.html" },
+    { "source": "/public/(.*)", "destination": "/public/$1" }, 
+    { "source": "/blog", "destination": "/blog/index.html" },
+    { "source": "/blog/(.*)", "destination": "/blog/$1" },
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/(.*)", "destination": "/public/index.html" }
   ]
 }

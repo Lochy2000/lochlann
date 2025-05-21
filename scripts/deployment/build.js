@@ -77,24 +77,21 @@ function copyDirectory(source, destination) {
   }
 }
 
-// Function to create a simple index.html redirect file
-function createIndexRedirect() {
-  const indexPath = path.join(mainOutputDir, 'index.html');
-  const content = `
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="refresh" content="0;url=/public/index.html">
-    <title>Redirecting...</title>
-  </head>
-  <body>
-    Redirecting to main site...
-  </body>
-</html>
-  `.trim();
+// Helper function to list all files in a directory recursively
+function listAllFiles(dir, fileList = []) {
+  const files = fs.readdirSync(dir);
   
-  fs.writeFileSync(indexPath, content);
-  console.log(`Created redirect at ${indexPath}`);
+  files.forEach(file => {
+    const filePath = path.join(dir, file);
+    
+    if (fs.statSync(filePath).isDirectory()) {
+      fileList = listAllFiles(filePath, fileList);
+    } else {
+      fileList.push(filePath);
+    }
+  });
+  
+  return fileList;
 }
 
 async function build() {
@@ -136,14 +133,56 @@ async function build() {
       process.exit(1);
     }
     
-    // Create index.html redirect in the root
-    createIndexRedirect();
+    // List all files in the public directory for debugging
+    console.log('Files in public directory:');
+    const publicFiles = listAllFiles(publicOutputDir);
+    publicFiles.forEach(file => {
+      console.log(`  - ${file.replace(publicOutputDir, '')}`);
+    });
     
-    // Create a .vercel directory to indicate this is a static site
-    const vercelDir = path.join(mainOutputDir, '.vercel');
-    if (!fs.existsSync(vercelDir)) {
-      fs.mkdirSync(vercelDir, { recursive: true });
-    }
+    // Create a test index.html file in the dist directory
+    const indexPath = path.join(mainOutputDir, 'index.html');
+    const indexContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lochlann O'Higgins Portfolio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { color: #333; }
+        a { 
+            display: inline-block;
+            margin: 10px 0;
+            padding: 10px 15px;
+            background-color: #0070f3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Lochlann's Portfolio</h1>
+    <p>Please select where you'd like to go:</p>
+    <div>
+        <a href="/public/index.html">View Portfolio</a>
+    </div>
+    <div>
+        <a href="/blog/index.html">View Blog</a>
+    </div>
+</body>
+</html>
+    `.trim();
+    
+    fs.writeFileSync(indexPath, indexContent);
+    console.log(`Created test index.html at ${indexPath}`);
     
     console.log('Build completed successfully!');
     console.log(`The unified build is available in: ${mainOutputDir}`);
