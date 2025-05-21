@@ -27,11 +27,21 @@ const mainOutputDir = path.join(projectRoot, 'dist');
 const publicOutputDir = path.join(mainOutputDir, 'public');
 const blogOutputDir = path.join(mainOutputDir, 'blog');
 
-// Create the output directories if they don't exist
+// Clean up any existing output directories
+console.log('==== CLEANING OUTPUT DIRECTORIES ====');
 [mainOutputDir, publicOutputDir, blogOutputDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (fs.existsSync(dir)) {
+    console.log(`Removing existing directory: ${dir}`);
+    fs.rmSync(dir, { recursive: true, force: true });
+    console.log(`Directory removed: ${dir}`);
   }
+});
+
+// Create the output directories
+console.log('Creating fresh output directories...');
+[mainOutputDir, publicOutputDir, blogOutputDir].forEach(dir => {
+  console.log(`Creating directory: ${dir}`);
+  fs.mkdirSync(dir, { recursive: true });
 });
 
 // Function to run a command in a specific directory
@@ -180,31 +190,27 @@ async function build() {
     console.log('Files in blog directory:', fs.readdirSync(blogPath).join(', '));
     
     try {
-      console.log('Checking blog package.json...');
-      const blogPackageJsonPath = path.join(blogPath, 'package.json');
-      if (fs.existsSync(blogPackageJsonPath)) {
-        const blogPackageJson = JSON.parse(fs.readFileSync(blogPackageJsonPath, 'utf8'));
-        console.log('Blog build script:', blogPackageJson.scripts?.build || 'No build script found');
-      } else {
-        console.error('Blog package.json not found');
-      }
-      
-      // Try to build using the custom script first
-      console.log('Attempting to build blog with build-no-ts.js...');
+      // Always use the custom build script for the blog
+      console.log('Building blog with custom build-no-ts.js script...');
       if (fs.existsSync(path.join(blogPath, 'build-no-ts.js'))) {
-        try {
-          await runCommand('node', ['build-no-ts.js'], blogPath);
-          console.log('Blog built successfully with build-no-ts.js');
-        } catch (customBuildError) {
-          console.error('Failed to build blog with custom script:', customBuildError.message);
-          console.log('Falling back to standard build...');
-          await runCommand('npm', ['run', 'build'], blogPath);
-        }
+        await runCommand('node', ['build-no-ts.js'], blogPath);
+        console.log('Blog built successfully with build-no-ts.js');
       } else {
+        console.error('Custom build script not found, falling back to standard build');
         await runCommand('npm', ['run', 'build'], blogPath);
       }
       
       console.log('==== BLOG BUILD COMPLETED SUCCESSFULLY ====');
+      
+      // Verify the blog build output
+      const blogDistDir = path.join(blogPath, 'dist');
+      console.log('Checking blog build output directory:', blogDistDir);
+      if (fs.existsSync(blogDistDir)) {
+        console.log('Blog dist directory contents:');
+        fs.readdirSync(blogDistDir).forEach(file => console.log(`  - ${file}`));
+      } else {
+        console.error('Blog dist directory not found after build!');
+      }
     } catch (blogError) {
       console.error('==== BLOG BUILD FAILED ====');
       console.error('Error details:', blogError.message);
@@ -246,13 +252,49 @@ async function build() {
     // Copy blog build to the blog directory
     console.log('==== COPYING BLOG BUILD ====');
     const blogBuildDir = path.join(blogPath, 'dist');
+    console.log(`Looking for blog build at: ${blogBuildDir}`);
+    
     if (fs.existsSync(blogBuildDir)) {
+      // First clear the target directory to avoid mixing old and new files
+      if (fs.existsSync(blogOutputDir)) {
+        console.log(`Clearing existing blog output directory: ${blogOutputDir}`);
+        fs.rmSync(blogOutputDir, { recursive: true, force: true });
+        fs.mkdirSync(blogOutputDir, { recursive: true });
+      }
+      
+      console.log(`Copying from ${blogBuildDir} to ${blogOutputDir}`);
       copyDirectory(blogBuildDir, blogOutputDir);
+      
+      // Verify the copy worked
+      if (fs.existsSync(path.join(blogOutputDir, 'index.html'))) {
+        console.log('Blog index.html copied successfully');
+      } else {
+        console.error('Blog index.html failed to copy!');
+      }
+      
       console.log('Blog build copied successfully');
     } else {
-      console.error('Error: Could not find blog build directory:', blogBuildDir);
+      console.error(`Error: Could not find blog build directory: ${blogBuildDir}`);
       console.log('Continuing without blog build');
-      // Continue instead of exiting to at least have a partial build
+    }
+    
+    // Create a version marker file to track which build was deployed
+    try {
+      const versionMarkerPath = path.join(blogOutputDir, 'version-info.json');
+      console.log(`Creating version marker at: ${versionMarkerPath}`);
+      
+      const versionInfo = {
+        buildTime: new Date().toISOString(),
+        buildMachine: process.env.COMPUTERNAME || 'unknown',
+        buildType: process.env.VERCEL ? 'vercel' : 'local',
+        buildCommit: process.env.VERCEL_GIT_COMMIT_SHA || 'unknown',
+        customMarker: "build-v2-with-admin-" + Date.now()
+      };
+      
+      fs.writeFileSync(versionMarkerPath, JSON.stringify(versionInfo, null, 2));
+      console.log('Version marker created successfully');
+    } catch (versionError) {
+      console.error('Failed to create version marker:', versionError.message);
     }
     
     // Fix asset paths
