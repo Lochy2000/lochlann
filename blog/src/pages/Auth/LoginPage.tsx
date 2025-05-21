@@ -12,7 +12,7 @@ const LoginPage: React.FC = () => {
   const location = useLocation();
 
   // Get the redirect path from state or default to admin dashboard
-  const from = location.state?.from?.pathname || '/admin';
+  const from = location.state?.from?.pathname || 'admin';
 
   // If already authenticated, redirect to the destination page
   React.useEffect(() => {

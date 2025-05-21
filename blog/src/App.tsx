@@ -59,7 +59,7 @@ const App: React.FC = () => {
           <Routes>
             {/* Admin Routes - No Header/Footer */}
             <Route 
-              path="/admin" 
+              path="admin" 
               element={
                 <ProtectedRoute redirectPath="/login">
                   <AdminDashboard />
@@ -68,15 +68,15 @@ const App: React.FC = () => {
             />
             
             {/* Auth Routes - No Header/Footer */}
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="login" element={<LoginPage />} />
             
             {/* Debug Routes */}
-            <Route path="/debug" element={<div style={{padding: '2rem', background: 'white'}}>
+            <Route path="debug" element={<div style={{padding: '2rem', background: 'white'}}>
               <h1>Debug Page</h1>
               <p>This page is for debugging routing issues.</p>
             </div>} />
             
-            <Route path="/firebase-debug" element={
+            <Route path="firebase-debug" element={
               <div style={{padding: '2rem', background: 'white', minHeight: '100vh'}}>
                 <FirebaseDebug />
               </div>
