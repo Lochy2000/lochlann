@@ -7,7 +7,7 @@
     "dev": "tsx server/index.ts",
     "dev:all": "node dev.js",
     "build": "vite build",
-    "build:all": "node scripts/deployment/build.js",
+    "build:all": "node scripts/deployment/build.js && node scripts/fix-asset-paths.js",
     "vercel-build": "npm run build:all",
     "check-vercel": "node scripts/check-vercel-build.js",
     "deploy": "npm run build:all && firebase deploy",
