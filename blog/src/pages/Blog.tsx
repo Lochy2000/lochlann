@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
@@ -80,16 +80,33 @@ const mockBlogPosts: MockBlogPost[] = [
 const categories = [
   { name: 'All', slug: 'all' },
   { name: 'Web Development', slug: 'web-development' },
+  { name: 'React', slug: 'react' },
   { name: 'Databases', slug: 'databases' },
-  { name: 'Tutorials', slug: 'tutorials' },
   { name: 'Tools', slug: 'tools' },
-  { name: 'Coffee Thoughts', slug: 'coffee-thoughts' }
+  { name: 'Coffee Thoughts', slug: 'coffee-thoughts' },
+  { name: 'Uncategorized', slug: 'uncategorized' }
 ];
 
 const Blog: React.FC = () => {
   const { category: categoryParam, tag: tagParam } = useParams();
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 6; // Number of posts to show per page
+
+  // Set category from URL params on load
+  useEffect(() => {
+    if (categoryParam) {
+      setSelectedCategory(categoryParam);
+    }
+  }, [categoryParam]);
+  
+  // Set tag filter from URL params on load
+  useEffect(() => {
+    if (tagParam) {
+      setSearchQuery(`#${tagParam}`);
+    }
+  }, [tagParam]);
 
   // Fetch blog posts from Firebase
   const { data: blogPosts, isLoading, error } = useQuery<(BlogPost | MockBlogPost)[]>({
@@ -100,8 +117,28 @@ const Blog: React.FC = () => {
         const posts = await firebaseBlogService.getPublishedPosts();
         console.log('Fetched blog posts:', posts);
         
-        if (posts.length > 0) {
-          return posts; // Return Firebase posts if available
+        if (posts && posts.length > 0) {
+          // Process posts to ensure they have all required fields
+          const processedPosts = posts.map(post => ({
+            ...post,
+            // Ensure categorySlug exists
+            categorySlug: post.categorySlug || post.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized',
+            // Ensure tags is always an array
+            tags: Array.isArray(post.tags) ? post.tags : 
+                  (typeof post.tags === 'string' ? post.tags.split(',').map(t => t.trim()) : []),
+            // Ensure image and coverImage exist
+            image: post.image || post.coverImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
+            coverImage: post.coverImage || post.image || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
+            // Ensure author exists
+            author: post.author || {
+              name: 'Lochlann O\'Higgins',
+              image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png',
+              bio: 'Junior developer with a passion for web technologies and lo-fi aesthetics.'
+            }
+          }));
+          
+          console.log('Processed posts:', processedPosts);
+          return processedPosts;
         }
         
         // Only fallback to mock data if no posts are found
@@ -120,13 +157,39 @@ const Blog: React.FC = () => {
     const matchesCategory = selectedCategory === 'all' || post.categorySlug === selectedCategory;
     const matchesSearch = !searchQuery || 
       post.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase());
+      post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (Array.isArray(post.tags) && post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     
     return matchesCategory && matchesSearch;
   });
 
-  // Get featured posts
-  const featuredPosts = (blogPosts || []).filter(post => post.featured);
+  // Sort posts by date (newest first)
+  const sortedPosts = [...filteredPosts].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  // Get the most recent post for the featured section
+  const featuredPost = sortedPosts.length > 0 ? sortedPosts[0] : null;
+  
+  // Get other featured posts (up to 2)
+  const otherFeaturedPosts = sortedPosts
+    .filter(post => post.featured && post.id !== featuredPost?.id)
+    .slice(0, 2);
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = sortedPosts.slice(indexOfFirstPost, indexOfLastPost);
+  
+  // Change page
+  const paginate = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    // Scroll to top when changing page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   if (isLoading) {
     return (
@@ -191,14 +254,38 @@ const Blog: React.FC = () => {
               </form>
             </motion.div>
             
+            {/* Categories Dropdown */}
+            <motion.div variants={itemVariants} className="mb-8">
+              <div className="max-w-xs mx-auto relative">
+                <select
+                  id="category-select"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="lofi-input w-full bg-slate-800/70 text-white border border-purple-500/30 focus:border-purple-400/70 focus:ring-1 focus:ring-purple-400 shadow-neon-purple/20 appearance-none pl-4 pr-10"
+                >
+                  {categories.map(category => (
+                    <option key={category.slug} value={category.slug}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-purple-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+            </motion.div>
+            
             <motion.div 
             className="flex flex-wrap justify-center gap-2 mb-4"
             variants={itemVariants}
             >
-            {categories.map(category => (
+            {/* Show only main categories as buttons */}
+            {categories.slice(0, 5).map(category => (
             <button
             key={category.slug}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
             selectedCategory === category.slug
             ? 'bg-purple-600 text-white shadow-neon-purple border border-purple-400/50'
             : 'bg-slate-800/80 text-slate-300 border border-slate-600/50 hover:bg-slate-700/90 hover:border-purple-500/30'
@@ -212,57 +299,105 @@ const Blog: React.FC = () => {
           </div>
         </motion.section>
         
-        {/* Featured Posts Section */}
-        {featuredPosts && featuredPosts.length > 0 && selectedCategory === 'all' && !searchQuery && (
+        {/* Featured Post Section - Most recent post highlighted */}
+        {featuredPost && selectedCategory === 'all' && !searchQuery && (
           <section className="py-12 bg-slate-900/40 backdrop-blur-md border-t border-b border-blue-500/10">
             <div className="container mx-auto px-4">
               <h2 className="text-3xl font-bold mb-8 font-space text-white">
-                Featured Posts
+                Latest Post
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {featuredPosts.map(post => (
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                {/* Main featured post - larger size */}
+                <div className="lg:col-span-3">
                   <Link 
-                    key={post.id}
-                    to={`/post/${post.slug}`}
-                    className="block group"
+                    to={`/post/${featuredPost.slug}`}
+                    className="block group h-full"
                   >
                     <article className="bg-white/80 dark:bg-lofi-terminal/80 h-full rounded-xl overflow-hidden shadow-neon hover:shadow-neon-lg transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
-                      <div className="h-60 overflow-hidden relative">
+                      <div className="h-80 overflow-hidden relative">
                         <img 
-                          src={post.coverImage || ('image' in post ? post.image : '')}
-                          alt={post.title}
+                          src={featuredPost.coverImage || ('image' in featuredPost ? featuredPost.image : '')}
+                          alt={featuredPost.title}
                           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute top-4 left-4">
-                          <span className={`${post.categoryColor} text-white text-xs px-3 py-1 rounded-full font-medium`}>
-                            {post.category}
+                          <span className={`${featuredPost.categoryColor} text-white text-xs px-3 py-1 rounded-full font-medium`}>
+                            {featuredPost.category}
                           </span>
                         </div>
                       </div>
                       
                       <div className="p-6">
-                        <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">
-                          {post.title}
+                        <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">
+                          {featuredPost.title}
                         </h3>
                         
-                        <p className="text-slate-600 dark:text-slate-300 mb-4">
-                          {post.excerpt}
+                        <p className="text-slate-600 dark:text-slate-300 mb-4 text-lg">
+                          {featuredPost.excerpt}
                         </p>
                         
-                        <div className="flex items-center text-xs text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center text-sm text-slate-500 dark:text-slate-400">
                           <span className="flex items-center">
-                            <FaCalendarAlt className="mr-1" /> {post.date}
+                            <FaCalendarAlt className="mr-1" /> {featuredPost.date}
                           </span>
                           <span className="mx-2">•</span>
                           <span className="flex items-center">
-                            <FaClock className="mr-1" /> {post.readTime}
+                            <FaClock className="mr-1" /> {featuredPost.readTime}
                           </span>
                         </div>
                       </div>
                     </article>
                   </Link>
-                ))}
+                </div>
+                
+                {/* Other featured posts - smaller size */}
+                <div className="lg:col-span-2">
+                  <div className="grid grid-cols-1 gap-6 h-full">
+                    {otherFeaturedPosts.map(post => (
+                      <Link 
+                        key={post.id}
+                        to={`/post/${post.slug}`}
+                        className="block group"
+                      >
+                        <article className="bg-white/80 dark:bg-lofi-terminal/80 h-full rounded-xl overflow-hidden shadow-neon hover:shadow-neon-lg transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                          <div className="h-48 overflow-hidden relative">
+                            <img 
+                              src={post.coverImage || ('image' in post ? post.image : '')}
+                              alt={post.title}
+                              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute top-4 left-4">
+                              <span className={`${post.categoryColor} text-white text-xs px-3 py-1 rounded-full font-medium`}>
+                                {post.category}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="p-4">
+                            <h3 className="text-lg font-bold mb-2 text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">
+                              {post.title}
+                            </h3>
+                            
+                            <p className="text-slate-600 dark:text-slate-300 mb-3 text-sm line-clamp-2">
+                              {post.excerpt}
+                            </p>
+                            
+                            <div className="flex items-center text-xs text-slate-500 dark:text-slate-400">
+                              <span className="flex items-center">
+                                <FaCalendarAlt className="mr-1" /> {post.date}
+                              </span>
+                              <span className="mx-2">•</span>
+                              <span className="flex items-center">
+                                <FaClock className="mr-1" /> {post.readTime}
+                              </span>
+                            </div>
+                          </div>
+                        </article>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -306,7 +441,7 @@ const Blog: React.FC = () => {
                 initial="hidden"
                 animate="visible"
               >
-                {filteredPosts.map(post => (
+                {currentPosts.map(post => (
                   <motion.div 
                     key={post.id}
                     variants={itemVariants}
@@ -354,23 +489,38 @@ const Blog: React.FC = () => {
               </motion.div>
             )}
             
-            {/* Pagination (to be implemented later) */}
-            {filteredPosts.length > 0 && (
+            {/* Pagination */}
+            {filteredPosts.length > 0 && totalPages > 1 && (
               <div className="mt-12 flex justify-center">
                 <div className="inline-flex rounded-md shadow-sm" role="group">
                   <button 
                     className="lofi-button-secondary rounded-r-none border-r-0"
-                    disabled
+                    onClick={() => paginate(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
                   >
                     Previous
                   </button>
-                  <button className="bg-primary text-white font-medium py-2 px-4">
-                    1
-                  </button>
-                  <button className="lofi-button-secondary py-2 px-4 border-l-0 border-r-0">
-                    2
-                  </button>
-                  <button className="lofi-button-secondary py-2 px-4 border-l-0 rounded-l-none">
+                  
+                  {/* Create pagination buttons */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                    <button 
+                      key={number}
+                      onClick={() => paginate(number)}
+                      className={`px-4 py-2 ${
+                        currentPage === number 
+                          ? 'bg-primary text-white font-medium' 
+                          : 'lofi-button-secondary py-2 px-4 border-l-0 border-r-0'
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  ))}
+                  
+                  <button 
+                    className="lofi-button-secondary py-2 px-4 border-l-0 rounded-l-none"
+                    onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                  >
                     Next
                   </button>
                 </div>

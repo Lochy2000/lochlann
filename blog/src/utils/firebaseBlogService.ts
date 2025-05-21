@@ -1,9 +1,9 @@
 // Firebase configuration for the blog
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, query, where, orderBy, setDoc } from "firebase/firestore";
 import { enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
-// Firebase configuration - replace with your own
+// Firebase configuration 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -13,18 +13,44 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Log the config for debugging (hiding the actual values)
+console.log('Firebase Config Status:', {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✓ Set' : '✗ Missing',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✓ Set' : '✗ Missing',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✓ Set' : '✗ Missing',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✓ Set' : '✗ Missing',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✓ Set' : '✗ Missing',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✓ Set' : '✗ Missing',
+});
+
+// Initialize Firebase - use existing app if available
+let app;
+if (getApps().length === 0) {
+  console.log('No Firebase apps found, initializing a new one');
+  app = initializeApp(firebaseConfig);
+} else {
+  console.log('Using existing Firebase app');
+  app = getApps()[0];
+}
+
 const db = getFirestore(app);
 
-// Enable offline persistence
+// Enable offline persistence - but wrapped in a try/catch and only done once
 try {
+  console.log('Setting up Firestore persistence');
+  // Use a simple setting to avoid the deprecated method warning
+  const settings = {
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED
+  };
+  
+  // Apply the settings to the Firestore instance
+  getFirestore(app).settings(settings);
+  
+  // Enable persistence explicitly
   enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
-      // Multiple tabs open, persistence can only be enabled in one tab at a time
       console.warn('Firebase persistence failed: Multiple tabs open');
     } else if (err.code === 'unimplemented') {
-      // The current browser does not support all of the features required for persistence
       console.warn('Firebase persistence not supported in this browser');
     }
   });
@@ -119,22 +145,40 @@ class FirebaseBlogService {
     if (this.initialized) return;
     
     try {
+      console.log('Checking for existing blog posts...');
       const querySnapshot = await getDocs(collection(db, this.collectionName));
       
       // If no posts exist, add sample posts
       if (querySnapshot.empty) {
         console.log('No blog posts found. Adding sample data...');
+        
+        // Add sample posts one by one with proper error handling
         for (const post of sampleBlogPosts) {
-          const docRef = await addDoc(collection(db, this.collectionName), post);
-          console.log(`Sample post added with ID: ${docRef.id}`);
-          
-          // Update relatedPosts after all posts are created
-          if (post.slug === 'getting-started-with-web-development') {
-            await updateDoc(docRef, {
-              relatedPosts: ['mastering-react-hooks']
-            });
+          try {
+            // Ensure tags is an array
+            const tags = Array.isArray(post.tags) ? post.tags : 
+                         (typeof post.tags === 'string' ? [post.tags].filter(Boolean) : []);
+            
+            // Format the post data correctly
+            const formattedPost = {
+              ...post,
+              tags: tags,
+              author: post.author || defaultAuthor,
+              published: post.published === undefined ? true : post.published,
+              featured: post.featured === undefined ? false : post.featured,
+              createdAt: post.createdAt || new Date().toISOString(),
+              updatedAt: post.updatedAt || new Date().toISOString()
+            };
+            
+            // Add the document
+            const docRef = await addDoc(collection(db, this.collectionName), formattedPost);
+            console.log(`Sample post "${formattedPost.title}" added with ID: ${docRef.id}`);
+          } catch (error) {
+            console.error('Error adding sample post:', error);
           }
         }
+      } else {
+        console.log(`Found ${querySnapshot.size} existing blog posts, skipping initialization`);
       }
       
       this.initialized = true;
@@ -165,20 +209,33 @@ class FirebaseBlogService {
     
     try {
       console.log('Fetching published blog posts');
-      const q = query(
-        collection(db, this.collectionName),
-        where('published', '==', true),
-        orderBy('date', 'desc')
-      );
       
-      const querySnapshot = await getDocs(q);
-      const posts = querySnapshot.docs.map(doc => ({
+      // Just get all posts first
+      console.log('Fetching all posts...');
+      const allDocsSnapshot = await getDocs(collection(db, this.collectionName));
+      
+      const allPosts = allDocsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as BlogPost[];
       
-      console.log(`Found ${posts.length} published posts`);
-      return posts;
+      console.log(`Found ${allPosts.length} total posts in the collection`);
+      
+      // Debug: Log each post with its published status
+      allPosts.forEach(post => {
+        console.log(`Post: ${post.title}, Published: ${post.published}, Featured: ${post.featured}, Date: ${post.date}`);
+      });
+      
+      // Even if a post doesn't have the published field, include it
+      const publishedPosts = allPosts.filter(post => post.published !== false);
+      console.log(`After filtering, found ${publishedPosts.length} published posts`);
+      
+      // Sort by date descending (newest first)
+      return publishedPosts.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB.getTime() - dateA.getTime();
+      });
     } catch (error) {
       console.error('Error fetching published blog posts:', error);
       return [];
@@ -189,10 +246,35 @@ class FirebaseBlogService {
   async getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
     await this.initialize();
     
+    if (!slug) {
+      console.error('No slug provided to getBlogPostBySlug');
+      return null;
+    }
+    
     try {
       console.log(`Searching for post with slug: ${slug}`);
       
-      // Create a simple query
+      // First try direct document lookup (in case the slug is the document ID)
+      try {
+        const docRef = doc(db, this.collectionName, slug);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          console.log(`Found post with direct ID lookup: ${slug}`);
+          const post = {
+            id: docSnap.id,
+            ...docSnap.data()
+          } as BlogPost;
+          console.log('Post data:', post);
+          return post;
+        } else {
+          console.log(`No document with ID ${slug} exists, trying query by slug field...`);
+        }
+      } catch (directLookupError) {
+        console.log('Direct document lookup failed, trying query by slug field...');
+      }
+      
+      // Create a query by slug field
       const q = query(
         collection(db, this.collectionName),
         where('slug', '==', slug)
@@ -204,6 +286,21 @@ class FirebaseBlogService {
       
       if (querySnapshot.empty) {
         console.log('No posts found with this slug');
+        
+        // Try one more approach - get all posts and inspect them
+        console.log('Getting all posts to inspect them manually...');
+        const allPostsSnapshot = await getDocs(collection(db, this.collectionName));
+        console.log(`Found ${allPostsSnapshot.docs.length} total posts`);
+        
+        // Log all slugs for debugging
+        if (allPostsSnapshot.docs.length > 0) {
+          console.log('Available slugs:');
+          allPostsSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            console.log(`- ID: ${doc.id}, Slug: ${data.slug}`);
+          });
+        }
+        
         return null;
       }
       
@@ -222,7 +319,7 @@ class FirebaseBlogService {
     }
   }
   
-  // Create a new post
+  // Create a new post with complete data
   async createBlogPost(post: Partial<BlogPost>): Promise<BlogPost> {
     await this.initialize();
     
@@ -233,6 +330,12 @@ class FirebaseBlogService {
       // Generate categorySlug if category is provided
       const categorySlug = post.category ? 
         this.generateSlug(post.category) : 'uncategorized';
+      
+      // Ensure tags is properly formatted
+      let formattedTags = post.tags || [];
+      if (typeof formattedTags === 'string') {
+        formattedTags = formattedTags.split(',').map(tag => tag.trim()).filter(Boolean);
+      }
       
       // Create a complete post with all required fields
       const newPost = {
@@ -247,7 +350,7 @@ class FirebaseBlogService {
         categorySlug: categorySlug,
         categoryColor: post.categoryColor || 'bg-blue-500',
         readTime: post.readTime || '5 min read',
-        tags: post.tags || [],
+        tags: formattedTags,
         published: post.published !== undefined ? post.published : true,
         featured: post.featured !== undefined ? post.featured : false,
         createdAt: new Date().toISOString(),
@@ -256,9 +359,9 @@ class FirebaseBlogService {
         relatedPosts: post.relatedPosts || []
       };
       
-      console.log('Creating post with data:', newPost);
+      console.log('Creating post with complete data:', newPost);
       
-      // Just use simple addDoc without any complexity
+      // Add the document to Firestore
       const docRef = await addDoc(collection(db, this.collectionName), newPost);
       console.log('Document created with ID:', docRef.id);
       
@@ -269,17 +372,32 @@ class FirebaseBlogService {
       } as BlogPost;
     } catch (error) {
       console.error('Error creating blog post:', error);
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
       throw error;
     }
   }
   
-  // Update an existing post
+  // Update an existing post with all fields
   async updateBlogPost(id: string, updatedPost: Partial<BlogPost>): Promise<BlogPost | null> {
-    await this.initialize();
-    
     try {
-      console.log(`Updating blog post with ID: ${id}`, updatedPost);
+      console.log(`Updating blog post ID: ${id} with full data`);
+      
+      if (!id) {
+        console.error('No ID provided for update');
+        return null;
+      }
+      
+      // Get a reference to the document
       const docRef = doc(db, this.collectionName, id);
+      
+      // Get the current document to merge with updates
       const docSnap = await getDoc(docRef);
       
       if (!docSnap.exists()) {
@@ -287,45 +405,54 @@ class FirebaseBlogService {
         return null;
       }
       
-      const existingData = docSnap.data();
+      // Current document data
+      const currentData = docSnap.data();
       
-      // Update categorySlug if category is updated
-      let updateData: Partial<BlogPost> = { ...updatedPost };
+      // Process the update data
+      const updateData: Record<string, any> = { ...updatedPost };
       
-      if (updatedPost.category) {
+      // Remove the ID field if present
+      if ('id' in updateData) {
+        delete updateData.id;
+      }
+      
+      // Update categorySlug if category is being updated
+      if (updatedPost.category && updatedPost.category !== currentData.category) {
         updateData.categorySlug = this.generateSlug(updatedPost.category);
       }
       
-      // Add updated timestamp
+      // Format tags if provided as string
+      if (updatedPost.tags && typeof updatedPost.tags === 'string') {
+        updateData.tags = updatedPost.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      }
+      
+      // Always update the timestamp
       updateData.updatedAt = new Date().toISOString();
       
-      // Make sure slug is always present and valid
-      if (updatedPost.title && !updatedPost.slug) {
-        updateData.slug = this.generateSlug(updatedPost.title);
-      }
+      console.log('Applying updates:', updateData);
       
-      // Merge with existing data to ensure no fields are lost
-      const mergedData = { ...existingData, ...updateData };
-      
-      // Remove id field from the data to be updated
-      if ('id' in mergedData) {
-        delete mergedData.id;
-      }
-      
-      // Use setDoc with merge option instead of updateDoc to ensure all fields are updated
-      await setDoc(docRef, mergedData, { merge: true });
-      
-      console.log(`Blog post updated successfully: ${id}`);
+      // Update the document
+      await updateDoc(docRef, updateData);
+      console.log('Document updated successfully');
       
       // Get the updated document
       const updatedDocSnap = await getDoc(docRef);
       
+      // Return the updated document with ID
       return {
         id: updatedDocSnap.id,
         ...updatedDocSnap.data()
       } as BlogPost;
     } catch (error) {
       console.error('Error updating blog post:', error);
+      
+      // Log detailed error information
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
       return null;
     }
   }

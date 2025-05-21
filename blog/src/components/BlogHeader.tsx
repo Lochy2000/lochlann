@@ -80,27 +80,27 @@ const BlogHeader: React.FC = () => {
             Home
           </Link>
           <Link 
-            to="/category/tutorials"
+            to="/category/web-development"
             className={`${
-              location.pathname === '/category/tutorials' 
+              location.pathname.includes('/category/web-development') 
                 ? 'text-primary dark:text-primary-light' 
                 : 'text-slate-700 dark:text-slate-300'
             } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1`}>
-            <FaLaptopCode className="text-sm" /> Tutorials
+            <FaLaptopCode className="text-sm" /> Web Dev
           </Link>
           <Link 
-            to="/category/projects"
+            to="/category/react"
             className={`${
-              location.pathname === '/category/projects' 
+              location.pathname.includes('/category/react') 
                 ? 'text-primary dark:text-primary-light' 
                 : 'text-slate-700 dark:text-slate-300'
             } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1`}>
-            <FaCodeBranch className="text-sm" /> Projects
+            <FaCodeBranch className="text-sm" /> React
           </Link>
           <Link 
             to="/category/coffee-thoughts"
             className={`${
-              location.pathname === '/category/coffee-thoughts' 
+              location.pathname.includes('/category/coffee-thoughts') 
                 ? 'text-primary dark:text-primary-light' 
                 : 'text-slate-700 dark:text-slate-300'
             } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1`}>
@@ -211,28 +211,36 @@ const BlogHeader: React.FC = () => {
             <div className="flex flex-col items-center justify-center flex-1 space-y-8 text-xl">
               <Link
                 to="/"
-                className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium"
+                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium ${
+                  location.pathname === '/' ? 'text-primary dark:text-primary-light' : ''
+                }`}
                 onClick={toggleMobileMenu}
               >
                 Home
               </Link>
               <Link
-                to="/category/tutorials"
-                className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2"
+                to="/category/web-development"
+                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2 ${
+                  location.pathname.includes('/category/web-development') ? 'text-primary dark:text-primary-light' : ''
+                }`}
                 onClick={toggleMobileMenu}
               >
-                <FaLaptopCode /> Tutorials
+                <FaLaptopCode /> Web Dev
               </Link>
               <Link
-                to="/category/projects"
-                className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2"
+                to="/category/react"
+                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2 ${
+                  location.pathname.includes('/category/react') ? 'text-primary dark:text-primary-light' : ''
+                }`}
                 onClick={toggleMobileMenu}
               >
-                <FaCodeBranch /> Projects
+                <FaCodeBranch /> React
               </Link>
               <Link
                 to="/category/coffee-thoughts"
-                className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2"
+                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2 ${
+                  location.pathname.includes('/category/coffee-thoughts') ? 'text-primary dark:text-primary-light' : ''
+                }`}
                 onClick={toggleMobileMenu}
               >
                 <FaCoffee /> Coffee Thoughts

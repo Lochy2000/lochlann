@@ -351,7 +351,27 @@ const BlogPost: React.FC = () => {
         
         if (post) {
           console.log('Found post in Firebase:', post);
-          return post;
+          
+          // Process post to ensure it has all required fields
+          const processedPost = {
+            ...post,
+            // Ensure categorySlug exists
+            categorySlug: post.categorySlug || post.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized',
+            // Ensure tags is always an array
+            tags: Array.isArray(post.tags) ? post.tags : 
+                  (typeof post.tags === 'string' ? post.tags.split(',').map(t => t.trim()) : []),
+            // Ensure image and coverImage exist
+            image: post.image || post.coverImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
+            coverImage: post.coverImage || post.image || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
+            // Ensure author exists
+            author: post.author || {
+              name: 'Lochlann O\'Higgins',
+              image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png',
+              bio: 'Junior developer with a passion for web technologies and lo-fi aesthetics.'
+            }
+          };
+          
+          return processedPost;
         }
         
         // If not found in Firebase, check mock data

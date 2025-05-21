@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaTimes, FaSignOutAlt } from 'react-icons/fa';
@@ -32,6 +32,34 @@ const AdminDashboard: React.FC = () => {
       setLoginError('Invalid credentials. Please try again.');
     }
   };
+  
+  // Test Firebase token
+  const testFirebaseToken = async () => {
+    try {
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        console.log('Firebase token first 20 chars:', token.substring(0, 20) + '...');
+        console.log('Token length:', token.length);
+        return `Token retrieved (${token.length} chars)`;
+      } else {
+        console.error('No current user to get token from');
+        return 'No user logged in';
+      }
+    } catch (error) {
+      console.error('Error getting token:', error);
+      return 'Error getting token';
+    }
+  };
+
+  // Token state
+  const [tokenStatus, setTokenStatus] = useState<string>('Not checked');
+
+  // Check token on mount
+  useEffect(() => {
+    if (isAuthenticated && currentUser) {
+      testFirebaseToken().then(setTokenStatus);
+    }
+  }, [isAuthenticated, currentUser]);
 
   // Fetch blog posts
   const { data: blogPosts, isLoading: postsLoading, error } = useQuery({
@@ -78,14 +106,51 @@ const AdminDashboard: React.FC = () => {
       }
       
       console.log('Updating blog post:', post);
-      const result = await firebaseBlogService.updateBlogPost(post.id.toString(), post);
       
-      if (!result) {
-        throw new Error('Failed to update blog post - no result returned');
+      // Clean up the data before sending to Firebase
+      const cleanPost = { ...post };
+      
+      // Process tags if needed
+      if (typeof cleanPost.tags === 'string') {
+        cleanPost.tags = cleanPost.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
       }
       
-      console.log('Blog post updated:', result);
-      return result;
+      // Ensure dates are in the right format
+      if (!cleanPost.date) {
+        cleanPost.date = new Date().toISOString().split('T')[0];
+      }
+      
+      // Ensure the post has a slug
+      if (!cleanPost.slug && cleanPost.title) {
+        cleanPost.slug = cleanPost.title
+          .toLowerCase()
+          .replace(/[^\w\s]/gi, '')
+          .replace(/\s+/g, '-');
+      }
+      
+      try {
+        const result = await firebaseBlogService.updateBlogPost(post.id.toString(), cleanPost);
+        
+        if (!result) {
+          throw new Error('Failed to update blog post - no result returned');
+        }
+        
+        console.log('Blog post updated successfully:', result);
+        return result;
+      } catch (error: any) {
+        console.error('Error in update mutation:', error);
+        
+        // More detailed error logging
+        if (error.code) {
+          console.error(`Firebase error code: ${error.code}`);
+        }
+        
+        if (error.message) {
+          console.error(`Error message: ${error.message}`);
+        }
+        
+        throw error; // Re-throw to be caught by onError
+      }
     },
     onSuccess: () => {
       // Invalidate and refetch
@@ -95,9 +160,19 @@ const AdminDashboard: React.FC = () => {
       setCurrentPost(null);
       alert('Blog post updated successfully!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Update mutation error:', error);
-      alert(`Error: ${error.message || 'Failed to update blog post. Please try again later.'}`);
+      
+      // More user-friendly error message
+      let errorMessage = 'Failed to update blog post.';
+      
+      if (error.code === 'permission-denied') {
+        errorMessage = 'You do not have permission to update this blog post. Please check your Firebase security rules.';
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      alert(errorMessage);
     }
   });
   
@@ -406,41 +481,56 @@ const AdminDashboard: React.FC = () => {
       
       <div className="container mx-auto max-w-6xl">
         <div className="bg-white dark:bg-lofi-terminal rounded-xl shadow-lofi p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Blog Admin Dashboard
-            </h1>
+          <div className="flex flex-col space-y-4 mb-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                Blog Admin Dashboard
+              </h1>
+              
+              <div className="flex space-x-2">
+                <button
+                  className="lofi-button-secondary"
+                  onClick={() => navigate('/')}
+                >
+                  Back to Blog
+                </button>
+                
+                <button
+                  className="lofi-button"
+                  onClick={() => {
+                    setCurrentPost({});
+                    setShowCreateForm(true);
+                  }}
+                >
+                  <FaPlus className="mr-2" /> New Post
+                </button>
+                
+                <button
+                  className="lofi-button-danger"
+                  onClick={async () => {
+                    try {
+                      await logout();
+                      navigate('/');
+                    } catch (error) {
+                      console.error('Logout error:', error);
+                    }
+                  }}
+                >
+                  <FaSignOutAlt className="mr-2" /> Logout
+                </button>
+              </div>
+            </div>
             
-            <div className="flex space-x-2">
-              <button
-                className="lofi-button-secondary"
-                onClick={() => navigate('/')}
+            {/* Debug info */}
+            <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded">
+              <p>Auth Status: {isAuthenticated ? 'Authenticated ✅' : 'Not Authenticated ❌'}</p>
+              <p>User Email: {currentUser?.email || 'None'}</p>
+              <p>Token Status: {tokenStatus}</p>
+              <button 
+                onClick={async () => setTokenStatus(await testFirebaseToken())}
+                className="text-blue-500 underline"
               >
-                Back to Blog
-              </button>
-              
-              <button
-                className="lofi-button"
-                onClick={() => {
-                  setCurrentPost({});
-                  setShowCreateForm(true);
-                }}
-              >
-                <FaPlus className="mr-2" /> New Post
-              </button>
-              
-              <button
-                className="lofi-button-danger"
-                onClick={async () => {
-                  try {
-                    await logout();
-                    navigate('/');
-                  } catch (error) {
-                    console.error('Logout error:', error);
-                  }
-                }}
-              >
-                <FaSignOutAlt className="mr-2" /> Logout
+                Refresh Token
               </button>
             </div>
           </div>

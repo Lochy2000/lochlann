@@ -10,6 +10,7 @@ import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import LoginPage from './pages/Auth/LoginPage';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import FirebaseDebug from './components/FirebaseDebug';
 import { Helmet } from 'react-helmet';
 
 // Create a new query client
@@ -18,6 +19,16 @@ const queryClient = new QueryClient();
 const App: React.FC = () => {
   // For debugging
   console.log('Blog App rendered');
+  
+  // Debug environment variables
+  console.log('Environment Variables Check:', {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✓ Set' : '✗ Missing',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✓ Set' : '✗ Missing',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✓ Set' : '✗ Missing',
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✓ Set' : '✗ Missing',
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✓ Set' : '✗ Missing',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✓ Set' : '✗ Missing',
+  });
   
   // Determine if we need a basename
   // When deployed as part of the main site, we'll use "/blog" 
@@ -59,11 +70,17 @@ const App: React.FC = () => {
             {/* Auth Routes - No Header/Footer */}
             <Route path="/login" element={<LoginPage />} />
             
-            {/* Debug Route */}
+            {/* Debug Routes */}
             <Route path="/debug" element={<div style={{padding: '2rem', background: 'white'}}>
               <h1>Debug Page</h1>
               <p>This page is for debugging routing issues.</p>
             </div>} />
+            
+            <Route path="/firebase-debug" element={
+              <div style={{padding: '2rem', background: 'white', minHeight: '100vh'}}>
+                <FirebaseDebug />
+              </div>
+            } />
             
             {/* Regular Blog Routes - With Header/Footer */}
             <Route path="/*" element={
@@ -77,10 +94,10 @@ const App: React.FC = () => {
                 <main className="blog-main pt-4">
                   <div className="container mx-auto py-8 px-6">
                     <Routes>
-                      <Route path="/" element={<Blog />} />
-                      <Route path="/post/:slug" element={<BlogPost />} />
-                      <Route path="/category/:category" element={<Blog />} />
-                      <Route path="/tags/:tag" element={<Blog />} />
+                      <Route index element={<Blog />} />
+                      <Route path="post/:slug" element={<BlogPost />} />
+                      <Route path="category/:category" element={<Blog />} />
+                      <Route path="tags/:tag" element={<Blog />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </div>

@@ -1,5 +1,5 @@
 // Firebase authentication service
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps } from "firebase/app";
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
@@ -19,8 +19,16 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase - use existing app if available
+let app;
+if (getApps().length === 0) {
+  console.log('No Firebase apps found in Auth, initializing a new one');
+  app = initializeApp(firebaseConfig);
+} else {
+  console.log('Using existing Firebase app in Auth');
+  app = getApps()[0];
+}
+
 const auth = getAuth(app);
 
 class FirebaseAuthService {
