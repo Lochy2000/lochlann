@@ -1,5 +1,17 @@
 {
   "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/home", "destination": "/home.html" },
+    { "source": "/status", "destination": "/status.html" },
+    { "source": "/test", "destination": "/test.html" },
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
   ]
 }

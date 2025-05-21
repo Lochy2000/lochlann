@@ -15,7 +15,12 @@ const BlogHeader: React.FC = () => {
   
   // Determine if we're in local development
   const isLocalDevelopment = window.location.port === "5001";
-  const mainSiteUrl = isLocalDevelopment ? "http://localhost:5000" : "/";
+  // For standalone deployment, we'll link to the main site
+  const mainSiteUrl = isLocalDevelopment 
+    ? "http://localhost:5000" 
+    : window.location.hostname.includes('lochlann-deh4.vercel.app') 
+      ? "https://lochlann.vercel.app"
+      : "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,7 +61,10 @@ const BlogHeader: React.FC = () => {
     <header className={headerClasses}>
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2 z-50">
+        <a 
+          href="/" 
+          className="flex items-center space-x-2 z-50"
+        >
           <img
             src="https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png"
             alt="Profile image"
@@ -65,27 +73,27 @@ const BlogHeader: React.FC = () => {
           <span className="font-space font-semibold text-xl text-slate-800 dark:text-white">
             <span className="hidden sm:inline">Lochlann's</span> Tech Blog
           </span>
-        </Link>
+        </a>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link
-            to="/"
+        <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
+          <a
+            href="/"
             className={`${
-              location.pathname === '/' 
+              location.pathname === '/' || location.pathname === ''  || location.pathname === '/#/' || location.pathname === '/#'
                 ? 'text-primary dark:text-primary-light' 
                 : 'text-slate-700 dark:text-slate-300'
-            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium`}
+            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium px-2 py-1`}
           >
             Home
-          </Link>
+          </a>
           <Link 
             to="/category/web-development"
             className={`${
               location.pathname.includes('/category/web-development') 
                 ? 'text-primary dark:text-primary-light' 
                 : 'text-slate-700 dark:text-slate-300'
-            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1`}>
+            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1 px-2 py-1`}>
             <FaLaptopCode className="text-sm" /> Web Dev
           </Link>
           <Link 
@@ -94,7 +102,7 @@ const BlogHeader: React.FC = () => {
               location.pathname.includes('/category/react') 
                 ? 'text-primary dark:text-primary-light' 
                 : 'text-slate-700 dark:text-slate-300'
-            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1`}>
+            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1 px-2 py-1`}>
             <FaCodeBranch className="text-sm" /> React
           </Link>
           <Link 
@@ -103,7 +111,7 @@ const BlogHeader: React.FC = () => {
               location.pathname.includes('/category/coffee-thoughts') 
                 ? 'text-primary dark:text-primary-light' 
                 : 'text-slate-700 dark:text-slate-300'
-            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1`}>
+            } hover:text-primary dark:hover:text-primary-light transition-colors font-medium flex items-center gap-1 px-2 py-1`}>
             <FaCoffee className="text-sm" /> Coffee Thoughts
           </Link>
           <div className="flex items-center space-x-4">
@@ -116,12 +124,6 @@ const BlogHeader: React.FC = () => {
             </button>
             <ThemeToggle />
           </div>
-          <a 
-            href={mainSiteUrl}
-            className="lofi-button"
-          >
-            Main Site
-          </a>
           
           {isAuthenticated && (
             <Link 
@@ -197,31 +199,33 @@ const BlogHeader: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-40 bg-white dark:bg-dark flex flex-col"
+            className="fixed inset-0 z-40 bg-slate-900/95 backdrop-blur-sm flex flex-col"
           >
             <div className="flex justify-end p-4">
               <button
                 onClick={toggleMobileMenu}
-                className="text-slate-700 dark:text-white"
+                className="text-slate-200 hover:text-white"
                 aria-label="Close mobile menu"
               >
                 <FaTimes className="h-6 w-6" />
               </button>
             </div>
-            <div className="flex flex-col items-center justify-center flex-1 space-y-8 text-xl">
-              <Link
-                to="/"
-                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium ${
-                  location.pathname === '/' ? 'text-primary dark:text-primary-light' : ''
+            <div className="flex flex-col items-center justify-center flex-1 space-y-6 text-lg">
+              <a
+                href="/home"
+                className={`text-slate-300 hover:text-primary-light font-medium ${
+                  location.pathname === '/' ? 'text-primary-light' : ''
                 }`}
-                onClick={toggleMobileMenu}
+                onClick={() => {
+                  toggleMobileMenu();
+                }}
               >
                 Home
-              </Link>
+              </a>
               <Link
                 to="/category/web-development"
-                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2 ${
-                  location.pathname.includes('/category/web-development') ? 'text-primary dark:text-primary-light' : ''
+                className={`text-slate-300 hover:text-primary-light font-medium flex items-center gap-2 ${
+                  location.pathname.includes('/category/web-development') ? 'text-primary-light' : ''
                 }`}
                 onClick={toggleMobileMenu}
               >
@@ -229,8 +233,8 @@ const BlogHeader: React.FC = () => {
               </Link>
               <Link
                 to="/category/react"
-                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2 ${
-                  location.pathname.includes('/category/react') ? 'text-primary dark:text-primary-light' : ''
+                className={`text-slate-300 hover:text-primary-light font-medium flex items-center gap-2 ${
+                  location.pathname.includes('/category/react') ? 'text-primary-light' : ''
                 }`}
                 onClick={toggleMobileMenu}
               >
@@ -238,19 +242,13 @@ const BlogHeader: React.FC = () => {
               </Link>
               <Link
                 to="/category/coffee-thoughts"
-                className={`text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light font-medium flex items-center gap-2 ${
-                  location.pathname.includes('/category/coffee-thoughts') ? 'text-primary dark:text-primary-light' : ''
+                className={`text-slate-300 hover:text-primary-light font-medium flex items-center gap-2 ${
+                  location.pathname.includes('/category/coffee-thoughts') ? 'text-primary-light' : ''
                 }`}
                 onClick={toggleMobileMenu}
               >
                 <FaCoffee /> Coffee Thoughts
               </Link>
-              <a
-                href={mainSiteUrl}
-                className="lofi-button mt-4"
-              >
-                Main Site
-              </a>
               
               {isAuthenticated && (
                 <Link 

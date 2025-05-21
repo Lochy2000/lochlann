@@ -12,6 +12,7 @@ import LoginPage from './pages/Auth/LoginPage';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import FirebaseDebug from './components/FirebaseDebug';
 import { Helmet } from 'react-helmet';
+import './utils/authDomainHelper';
 
 // Create a new query client
 const queryClient = new QueryClient();
@@ -30,25 +31,39 @@ const App: React.FC = () => {
     appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✓ Set' : '✗ Missing',
   });
   
-  // Determine if we need a basename
-  // When deployed as part of the main site, we'll use "/blog" 
-  // For local development, we'll use ""
-  const isLocalDevelopment = window.location.port === "5001";
-  const basename = isLocalDevelopment ? "" : "/blog";
-  
   // Parse hash for direct access
   const hashPath = window.location.hash ? window.location.hash.substring(1) : '';
+
+  // Determine if we need a basename
+  // When deployed as part of the main site, we'll use "/blog" 
+  // For local development or standalone deployment, we'll use ""
+  const isLocalDevelopment = window.location.port === "5001" || !window.location.host.includes("lochlann.vercel.app");
+  const basename = "";  // Always use empty basename for standalone deployment
   
   console.log('Using basename:', basename);
   console.log('Hash path (if any):', hashPath);
   
   useEffect(() => {
+    // Handle direct access - ensure the home page is shown when accessing the root
+    const showHome = () => {
+      if (window.location.pathname === '/' && !window.location.hash) {
+        const rootElement = document.getElementById('root');
+        if (rootElement && rootElement.childNodes.length === 0) {
+          console.log('Forcing reload for home page');
+          window.location.reload();
+        }
+      }
+    };
+    
     // Check if we have a hash-based route
     if (window.location.hash && window.location.hash.startsWith('#/admin')) {
       console.log('Detected admin hash route, redirecting...');
       const adminPath = window.location.hash.substring(1); // Remove the # character
       window.history.replaceState(null, '', adminPath);
       window.location.reload();
+    } else {
+      // Make sure home page is loaded
+      showHome();
     }
   }, []);
   

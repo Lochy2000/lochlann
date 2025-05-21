@@ -38,22 +38,21 @@ const db = getFirestore(app);
 // Enable offline persistence - but wrapped in a try/catch and only done once
 try {
   console.log('Setting up Firestore persistence');
-  // Use a simple setting to avoid the deprecated method warning
-  const settings = {
-    cacheSizeBytes: CACHE_SIZE_UNLIMITED
-  };
   
-  // Apply the settings to the Firestore instance
-  getFirestore(app).settings(settings);
-  
-  // Enable persistence explicitly
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.warn('Firebase persistence failed: Multiple tabs open');
-    } else if (err.code === 'unimplemented') {
-      console.warn('Firebase persistence not supported in this browser');
-    }
-  });
+  // Enable persistence explicitly with a safer approach
+  try {
+    enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn('Firebase persistence failed: Multiple tabs open');
+      } else if (err.code === 'unimplemented') {
+        console.warn('Firebase persistence not supported in this browser');
+      } else {
+        console.warn('Firebase persistence failed:', err);
+      }
+    });
+  } catch (err) {
+    console.warn('Could not enable persistence:', err);
+  }
 } catch (error) {
   console.error('Could not enable offline persistence:', error);
 }

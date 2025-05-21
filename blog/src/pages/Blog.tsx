@@ -181,88 +181,111 @@ const Blog: React.FC = () => {
       {/* Parallax Video Background */}
       <ParallaxVideo
         videoSrc="https://res.cloudinary.com/dpw2txejq/video/upload/v1747743810/lofi-bg_llx3on.mp4"
-        overlayOpacity={0.6}
+        overlayOpacity={0.5}
       />
       
-      <div className="mt-16 md:mt-20">
-        {/* Hero Section */}
-        <motion.section 
-          className="px-4 py-12 md:py-20 text-center relative overflow-hidden z-10"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          <div className="max-w-4xl mx-auto relative z-10 bg-slate-900/50 p-8 rounded-xl border border-purple-500/20 shadow-neon-purple backdrop-blur-md">
-            <motion.h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-space text-white"
+      <div className="mt-16 md:mt-12">
+        {/* Hero Section - Only show on home page */}
+        {!categoryParam && !tagParam && !searchQuery && (
+          <motion.section 
+            className="px-4 py-8 md:py-10 text-center relative overflow-hidden z-10"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
+            <div className="max-w-3xl mx-auto relative z-10 bg-slate-900/30 p-6 rounded-xl border border-purple-500/20 shadow-neon-purple backdrop-blur-sm">
+              <motion.h1 
+                className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 font-space text-white"
+                variants={itemVariants}
+              >
+                <span className="text-purple-400">{"<"}</span>
+                Lochlann's Tech Blog
+                <span className="text-purple-400">{"/>"}</span>
+              </motion.h1>
+              
+              <motion.p 
+                className="text-lg text-slate-300 mb-6 max-w-2xl mx-auto"
+                variants={itemVariants}
+              >
+                Tutorials, insights, and musings on web development, AI, and lo-fi aesthetics. 
+                Join me as I navigate the tech world as a junior developer.
+              </motion.p>
+              
+              <motion.div variants={itemVariants}>
+                <form className="max-w-lg mx-auto flex mb-6" onSubmit={(e) => e.preventDefault()}>
+                  <input
+                    type="text"
+                    placeholder="Search articles..."
+                    className="lofi-input flex-grow bg-slate-800/70 text-white border border-blue-500/20 focus:border-blue-400/70 focus:ring-1 focus:ring-blue-400"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button className="lofi-button ml-2 px-4 bg-blue-600 hover:bg-blue-500 text-white shadow-neon border border-blue-400/30">
+                    <FaSearch className="mr-2 inline-block" /> Search
+                  </button>
+                </form>
+              </motion.div>
+              
+              <motion.div 
+              className="flex flex-wrap justify-center gap-2"
               variants={itemVariants}
-            >
-              <span className="text-purple-400">{"<"}</span>
-              Lochlann's Tech Blog
-              <span className="text-purple-400">{"/>"}</span>
-            </motion.h1>
-            
-            <motion.p 
-              className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto"
-              variants={itemVariants}
-            >
-              Tutorials, insights, and musings on web development, AI, and lo-fi aesthetics. 
-              Join me as I navigate the tech world as a junior developer.
-            </motion.p>
-            
-            <motion.div variants={itemVariants}>
-              <form className="max-w-lg mx-auto flex mb-8" onSubmit={(e) => e.preventDefault()}>
-                <input
-                  type="text"
-                  placeholder="Search articles..."
-                  className="lofi-input flex-grow bg-slate-800/70 text-white border border-blue-500/20 focus:border-blue-400/70 focus:ring-1 focus:ring-blue-400"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button className="lofi-button ml-2 px-4 bg-blue-600 hover:bg-blue-500 text-white shadow-neon border border-blue-400/30">
-                  <FaSearch className="mr-2 inline-block" /> Search
-                </button>
-              </form>
-            </motion.div>
-            
-            <motion.div 
-            className="flex flex-wrap justify-center gap-2 mb-4"
-            variants={itemVariants}
-            >
-            {categories.map(category => (
-            <button
-            key={category.slug}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-            selectedCategory === category.slug
-            ? 'bg-purple-600 text-white shadow-neon-purple border border-purple-400/50'
-            : 'bg-slate-800/80 text-slate-300 border border-slate-600/50 hover:bg-slate-700/90 hover:border-purple-500/30'
-            }`}
-            onClick={() => setSelectedCategory(category.slug)}
-            >
-            {category.name}
-            </button>
-            ))}
-            </motion.div>
+              >
+              {categories.map(category => (
+              <button
+              key={category.slug}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${
+              selectedCategory === category.slug
+              ? 'bg-purple-600 text-white shadow-neon-purple border border-purple-400/50'
+              : 'bg-slate-800/80 text-slate-300 border border-slate-600/50 hover:bg-slate-700/90 hover:border-purple-500/30'
+              }`}
+              onClick={() => setSelectedCategory(category.slug)}
+              >
+              {category.name}
+              </button>
+              ))}
+              </motion.div>
+            </div>
+          </motion.section>
+        )}
+        
+        {/* Category filter for non-home pages */}
+        {(categoryParam || tagParam || searchQuery) && (
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex flex-wrap gap-2 mb-4 justify-center">
+              {categories.map(category => (
+                <Link
+                  key={category.slug}
+                  to={category.slug === 'all' ? '/' : `/category/${category.slug}`}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${
+                    selectedCategory === category.slug
+                    ? 'bg-purple-600 text-white shadow-neon-purple border border-purple-400/50'
+                    : 'bg-slate-800/80 text-slate-300 border border-slate-600/50 hover:bg-slate-700/90 hover:border-purple-500/30'
+                  }`}
+                >
+                  {category.name}
+                </Link>
+              ))}
+            </div>
           </div>
-        </motion.section>
+        )}
         
         {/* Featured Posts Section */}
         {featuredPosts && featuredPosts.length > 0 && selectedCategory === 'all' && !searchQuery && (
-          <section className="py-12 bg-slate-900/40 backdrop-blur-md border-t border-b border-blue-500/10">
+          <section className="py-8 bg-slate-900/30 backdrop-blur-sm border-t border-b border-blue-500/10" data-section="featured-posts">
             <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold mb-8 font-space text-white">
+              <h2 className="text-2xl font-bold mb-6 font-space text-white">
                 Featured Posts
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {featuredPosts.map(post => (
                   <Link 
                     key={post.id}
                     to={`/post/${post.slug}`}
                     className="block group"
                   >
-                    <article className="bg-white/80 dark:bg-lofi-terminal/80 h-full rounded-xl overflow-hidden shadow-neon hover:shadow-neon-lg transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
-                      <div className="h-60 overflow-hidden relative">
+                    <article className="bg-white/70 dark:bg-lofi-terminal/70 h-full rounded-xl overflow-hidden shadow-neon hover:shadow-neon-lg transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
+                      <div className="h-52 overflow-hidden relative">
                         <img 
                           src={post.coverImage || ('image' in post ? post.image : '')}
                           alt={post.title}
@@ -275,12 +298,12 @@ const Blog: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">
+                      <div className="p-5">
+                        <h3 className="text-lg font-bold mb-2 text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors">
                           {post.title}
                         </h3>
                         
-                        <p className="text-slate-600 dark:text-slate-300 mb-4">
+                        <p className="text-slate-600 dark:text-slate-300 mb-3 text-sm line-clamp-2">
                           {post.excerpt}
                         </p>
                         
@@ -303,9 +326,9 @@ const Blog: React.FC = () => {
         )}
         
         {/* All Posts Section */}
-        <section className="py-12 bg-slate-900/30 backdrop-blur-md">
+        <section className="py-8 bg-slate-900/20 backdrop-blur-sm" data-section="recent-posts">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-8 font-space text-white">
+            <h2 className="text-2xl font-bold mb-6 font-space text-white">
               {searchQuery 
                 ? `Search Results for "${searchQuery}"`
                 : selectedCategory !== 'all'
@@ -315,9 +338,9 @@ const Blog: React.FC = () => {
             </h2>
             
             {filteredPosts.length === 0 ? (
-              <div className="lofi-card text-center p-12">
-                <FaSearch className="mx-auto text-5xl text-slate-400 mb-4" />
-                <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">
+              <div className="lofi-card text-center p-8 bg-white/70 dark:bg-lofi-terminal/70 backdrop-blur-sm">
+                <FaSearch className="mx-auto text-4xl text-slate-400 mb-3" />
+                <h3 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">
                   No posts found
                 </h3>
                 <p className="text-slate-600 dark:text-slate-300 mb-4">
@@ -335,7 +358,7 @@ const Blog: React.FC = () => {
               </div>
             ) : (
               <motion.div 
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -349,8 +372,8 @@ const Blog: React.FC = () => {
                       to={`/post/${post.slug}`}
                       className="block group h-full"
                     >
-                      <article className="lofi-card h-full flex flex-col bg-white/80 dark:bg-lofi-terminal/80 backdrop-blur-sm shadow-neon hover:shadow-neon-lg">
-                        <div className="h-48 overflow-hidden rounded-lg mb-4 relative">
+                      <article className="lofi-card h-full flex flex-col bg-white/70 dark:bg-lofi-terminal/70 backdrop-blur-sm shadow-neon hover:shadow-neon-lg">
+                        <div className="h-44 overflow-hidden rounded-lg mb-3 relative">
                           <img 
                             src={post.coverImage || ('image' in post ? post.image : '')}
                             alt={post.title}
@@ -363,17 +386,17 @@ const Blog: React.FC = () => {
                           </div>
                         </div>
                         
-                        <div className="flex-grow">
-                          <h3 className="text-lg font-bold mb-2 text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors line-clamp-2">
+                        <div className="flex-grow px-4 pb-4">
+                          <h3 className="text-base font-bold mb-2 text-slate-900 dark:text-white group-hover:text-primary dark:group-hover:text-primary-light transition-colors line-clamp-2">
                             {post.title}
                           </h3>
                           
-                          <p className="text-slate-600 dark:text-slate-300 mb-4 text-sm line-clamp-3">
+                          <p className="text-slate-600 dark:text-slate-300 mb-3 text-sm line-clamp-2">
                             {post.excerpt}
                           </p>
                         </div>
                         
-                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-4 pb-3">
                           <span className="flex items-center">
                             <FaCalendarAlt className="mr-1" /> {post.date}
                           </span>
@@ -390,21 +413,21 @@ const Blog: React.FC = () => {
             
             {/* Pagination (to be implemented later) */}
             {filteredPosts.length > 0 && (
-              <div className="mt-12 flex justify-center">
+              <div className="mt-8 flex justify-center">
                 <div className="inline-flex rounded-md shadow-sm" role="group">
                   <button 
-                    className="lofi-button-secondary rounded-r-none border-r-0"
+                    className="lofi-button-secondary rounded-r-none border-r-0 px-3 py-1.5 text-sm"
                     disabled
                   >
                     Previous
                   </button>
-                  <button className="bg-primary text-white font-medium py-2 px-4">
+                  <button className="bg-primary text-white font-medium py-1.5 px-3 text-sm">
                     1
                   </button>
-                  <button className="lofi-button-secondary py-2 px-4 border-l-0 border-r-0">
+                  <button className="lofi-button-secondary py-1.5 px-3 text-sm border-l-0 border-r-0">
                     2
                   </button>
-                  <button className="lofi-button-secondary py-2 px-4 border-l-0 rounded-l-none">
+                  <button className="lofi-button-secondary py-1.5 px-3 text-sm border-l-0 rounded-l-none">
                     Next
                   </button>
                 </div>
@@ -414,14 +437,14 @@ const Blog: React.FC = () => {
         </section>
         
         {/* Newsletter Section */}
-        <section className="py-16 bg-gradient-to-br from-purple-900/50 to-slate-900/50 backdrop-blur-md border-t border-purple-500/10">
+        <section className="py-10 bg-gradient-to-br from-purple-900/40 to-slate-900/40 backdrop-blur-sm border-t border-purple-500/10">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto text-center">
-              <FaCoffee className="text-4xl text-purple-400 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold mb-4 font-space text-white">
+              <FaCoffee className="text-3xl text-purple-400 mx-auto mb-3" />
+              <h2 className="text-2xl font-bold mb-3 font-space text-white">
                 Join the Devs & Coffee Newsletter
               </h2>
-              <p className="text-slate-300 mb-8">
+              <p className="text-slate-300 mb-6">
                 Get the latest articles, tutorials, and lo-fi coding inspiration delivered straight to your inbox. No spam, just dev goodness.
               </p>
               

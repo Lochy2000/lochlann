@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Blog Status Check</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      color: #333;
+    }
+    h1 { color: #2563eb; }
+    pre {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .status { margin-bottom: 30px; }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .warning { color: #f59e0b; }
+    .box {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <h1>Blog Deployment Status Check</h1>
+  
+  <div class="box">
+    <h2>Routing Test</h2>
+    <div id="routeStatus" class="status">Running route test...</div>
+    <div>
+      <button onclick="window.location.href = '/'">Go to Home</button>
+      <button onclick="window.location.href = '/admin'">Go to Admin</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Firebase Configuration</h2>
+    <div id="firebaseStatus" class="status">Checking Firebase configuration...</div>
+    <pre id="firebaseConfig"></pre>
+  </div>
+  
+  <div class="box">
+    <h2>Environment Variables</h2>
+    <div id="envStatus" class="status">Checking environment variables...</div>
+    <pre id="envVars"></pre>
+  </div>
+
+  <script>
+    // Check if Firebase is loaded
+    function checkFirebase() {
+      const status = document.getElementById('firebaseStatus');
+      const config = document.getElementById('firebaseConfig');
+      
+      try {
+        // Just check if Firebase variables are available
+        const vars = [
+          'VITE_FIREBASE_API_KEY',
+          'VITE_FIREBASE_AUTH_DOMAIN',
+          'VITE_FIREBASE_PROJECT_ID',
+          'VITE_FIREBASE_STORAGE_BUCKET',
+          'VITE_FIREBASE_MESSAGING_SENDER_ID',
+          'VITE_FIREBASE_APP_ID',
+          'VITE_FIREBASE_MEASUREMENT_ID'
+        ];
+        
+        const importMeta = window.importMeta || { env: {} };
+        const env = importMeta.env || {};
+        
+        const results = vars.map(v => ({ 
+          name: v, 
+          exists: !!env[v], 
+          value: env[v] ? '✓ Set' : '✗ Missing'
+        }));
+        
+        const allExist = results.every(r => r.exists);
+        
+        if (allExist) {
+          status.textContent = '✅ Firebase environment variables are set';
+          status.className = 'status success';
+        } else {
+          status.textContent = '❌ Some Firebase environment variables are missing';
+          status.className = 'status error';
+        }
+        
+        config.textContent = JSON.stringify(results, null, 2);
+      } catch (err) {
+        status.textContent = `❌ Error checking Firebase: ${err.message}`;
+        status.className = 'status error';
+        config.textContent = err.stack;
+      }
+    }
+    
+    // Check environment variables
+    function checkEnv() {
+      const status = document.getElementById('envStatus');
+      const vars = document.getElementById('envVars');
+      
+      try {
+        const envInfo = {
+          hostname: window.location.hostname,
+          pathname: window.location.pathname,
+          hash: window.location.hash,
+          protocol: window.location.protocol,
+          userAgent: navigator.userAgent
+        };
+        
+        status.textContent = '✅ Environment information collected';
+        status.className = 'status success';
+        vars.textContent = JSON.stringify(envInfo, null, 2);
+      } catch (err) {
+        status.textContent = `❌ Error checking environment: ${err.message}`;
+        status.className = 'status error';
+        vars.textContent = err.stack;
+      }
+    }
+    
+    // Check routing
+    function checkRouting() {
+      const status = document.getElementById('routeStatus');
+      
+      try {
+        const currentPath = window.location.pathname;
+        let result;
+        
+        if (currentPath === '/status.html') {
+          result = '✅ Accessed directly - routing works correctly';
+          status.className = 'status success';
+        } else if (currentPath === '/') {
+          result = '✅ Home route works correctly';
+          status.className = 'status success';
+        } else {
+          result = `⚠️ Unusual route detected: ${currentPath}`;
+          status.className = 'status warning';
+        }
+        
+        status.textContent = result;
+      } catch (err) {
+        status.textContent = `❌ Error checking routing: ${err.message}`;
+        status.className = 'status error';
+      }
+    }
+    
+    // Run all checks
+    window.onload = function() {
+      checkRouting();
+      checkFirebase();
+      checkEnv();
+    };
+  </script>
+</body>
+</html>
