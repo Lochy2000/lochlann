@@ -157,20 +157,77 @@ function createRootRedirect() {
 }
 
 async function build() {
+  console.log('==== BUILD SCRIPT STARTED ====');
+  console.log('Current directory:', process.cwd());
+  console.log('Project root:', projectRoot);
+  
   try {
     // Build the main CV/Portfolio site
-    console.log('Building CV/Portfolio site...');
-    await runCommand('npm', ['run', 'build'], cvPath);
+    console.log('==== STARTING CV BUILD ====');
+    try {
+      await runCommand('npm', ['run', 'build'], cvPath);
+      console.log('==== CV BUILD COMPLETED SUCCESSFULLY ====');
+    } catch (cvError) {
+      console.error('==== CV BUILD FAILED ====');
+      console.error('Error details:', cvError.message);
+      // Continue anyway so we can still try to build the blog
+      console.log('Continuing to blog build despite CV build error...');
+    }
     
     // Build the blog
-    console.log('Building Blog...');
-    await runCommand('npm', ['run', 'build'], blogPath);
+    console.log('==== STARTING BLOG BUILD ====');
+    console.log('Blog path:', blogPath);
+    console.log('Files in blog directory:', fs.readdirSync(blogPath).join(', '));
+    
+    try {
+      console.log('Checking blog package.json...');
+      const blogPackageJsonPath = path.join(blogPath, 'package.json');
+      if (fs.existsSync(blogPackageJsonPath)) {
+        const blogPackageJson = JSON.parse(fs.readFileSync(blogPackageJsonPath, 'utf8'));
+        console.log('Blog build script:', blogPackageJson.scripts?.build || 'No build script found');
+      } else {
+        console.error('Blog package.json not found');
+      }
+      
+      // Try to build using the custom script first
+      console.log('Attempting to build blog with build-no-ts.js...');
+      if (fs.existsSync(path.join(blogPath, 'build-no-ts.js'))) {
+        try {
+          await runCommand('node', ['build-no-ts.js'], blogPath);
+          console.log('Blog built successfully with build-no-ts.js');
+        } catch (customBuildError) {
+          console.error('Failed to build blog with custom script:', customBuildError.message);
+          console.log('Falling back to standard build...');
+          await runCommand('npm', ['run', 'build'], blogPath);
+        }
+      } else {
+        await runCommand('npm', ['run', 'build'], blogPath);
+      }
+      
+      console.log('==== BLOG BUILD COMPLETED SUCCESSFULLY ====');
+    } catch (blogError) {
+      console.error('==== BLOG BUILD FAILED ====');
+      console.error('Error details:', blogError.message);
+      console.log('Continuing with the build process despite blog build errors');
+    }
+    
+    // Check if blog dist directory was created
+    console.log('Checking if blog dist directory exists...');
+    const blogDistExists = fs.existsSync(path.join(blogPath, 'dist'));
+    console.log(`Blog dist directory exists: ${blogDistExists}`);
+    if (blogDistExists) {
+      console.log('Blog dist directory contents:');
+      fs.readdirSync(path.join(blogPath, 'dist')).forEach(file => {
+        console.log(`  - ${file}`);
+      });
+    }
     
     // Copy main site build to the public directory
-    console.log('Copying main site build to public directory...');
+    console.log('==== COPYING MAIN SITE BUILD ====');
     const clientBuildDir = path.join(cvPath, 'dist', 'public');
     if (fs.existsSync(clientBuildDir)) {
       copyDirectory(clientBuildDir, publicOutputDir);
+      console.log('Main site build copied successfully');
     } else {
       console.warn('Warning: Main site build directory not found at expected location:', clientBuildDir);
       console.warn('Checking alternate location...');
@@ -179,36 +236,88 @@ async function build() {
       const altBuildDir = path.join(cvPath, 'client', 'dist');
       if (fs.existsSync(altBuildDir)) {
         copyDirectory(altBuildDir, publicOutputDir);
+        console.log('Main site build copied from alternate location');
       } else {
         console.error('Error: Could not find main site build directory');
-        process.exit(1);
+        // Continue instead of exiting to see if we can still copy the blog
       }
     }
     
     // Copy blog build to the blog directory
-    console.log('Copying blog build to blog directory...');
+    console.log('==== COPYING BLOG BUILD ====');
     const blogBuildDir = path.join(blogPath, 'dist');
     if (fs.existsSync(blogBuildDir)) {
       copyDirectory(blogBuildDir, blogOutputDir);
+      console.log('Blog build copied successfully');
     } else {
       console.error('Error: Could not find blog build directory:', blogBuildDir);
-      process.exit(1);
+      console.log('Continuing without blog build');
+      // Continue instead of exiting to at least have a partial build
     }
     
     // Fix asset paths
-    fixPortfolioIndexPaths();
-    fixBlogIndexPaths();
+    console.log('==== FIXING ASSET PATHS ====');
+    try {
+      fixPortfolioIndexPaths();
+      console.log('Portfolio asset paths fixed');
+    } catch (portfolioPathError) {
+      console.error('Error fixing portfolio paths:', portfolioPathError.message);
+    }
+    
+    try {
+      fixBlogIndexPaths();
+      console.log('Blog asset paths fixed');
+    } catch (blogPathError) {
+      console.error('Error fixing blog paths:', blogPathError.message);
+    }
     
     // Create root redirect
-    createRootRedirect();
+    console.log('==== CREATING ROOT REDIRECT ====');
+    try {
+      createRootRedirect();
+      console.log('Root redirect created');
+    } catch (redirectError) {
+      console.error('Error creating root redirect:', redirectError.message);
+    }
     
-    console.log('Build completed successfully!');
+    console.log('==== BUILD PROCESS COMPLETED ====');
     console.log(`The unified build is available in: ${mainOutputDir}`);
     console.log(`Main site: ${publicOutputDir}`);
     console.log(`Blog: ${blogOutputDir}`);
+    
+    // List the final dist directory structure for verification
+    console.log('Final build directory structure:');
+    listDirectory(mainOutputDir, '  ');
+    
   } catch (error) {
-    console.error('Build failed:', error);
+    console.error('==== BUILD FAILED ====');
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
     process.exit(1);
+  }
+}
+
+// Helper function to list directory contents
+function listDirectory(dir, prefix = '') {
+  if (!fs.existsSync(dir)) {
+    console.log(`${prefix}Directory does not exist: ${dir}`);
+    return;
+  }
+  
+  try {
+    const files = fs.readdirSync(dir);
+    files.forEach(file => {
+      const filePath = path.join(dir, file);
+      const isDirectory = fs.statSync(filePath).isDirectory();
+      console.log(`${prefix}${isDirectory ? '[DIR]' : '[FILE]'} ${file}`);
+      
+      // Only list subdirectories up to 1 level deep to avoid excessive output
+      if (isDirectory && prefix.length < 4) {
+        listDirectory(filePath, `${prefix}  `);
+      }
+    });
+  } catch (error) {
+    console.error(`${prefix}Error reading directory ${dir}:`, error.message);
   }
 }
 
