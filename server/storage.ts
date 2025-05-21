@@ -18,6 +18,59 @@ import {
 import { db, isDatabaseInitialized } from "./db.js";
 import { eq } from "drizzle-orm";
 
+// Sample data for when the database is not available
+const mockPortfolioProjects = [
+  {
+    id: 1,
+    title: 'Phonetic Focus',
+    shortTitle: 'Phonetic Focus',
+    description: 'A responsive website for a digital literacy consulting firm with custom animations and content management system.',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747676704/frentic-focus_c4o1u2.png',
+    technologies: ['WordPress', 'Custom Themes', 'Responsive','DigitalOceans'],
+    demoLink: 'https://www.freneticfocus.com/',
+    githubLink: 'https://github.com/Lochy2000/frenticfocus-',
+    featured: true,
+    order: 1
+  },
+  {
+    id: 2,
+    title: 'Dating Events Platform',
+    shortTitle: 'Dating Events',
+    description: 'A full-featured events platform for dating services with booking system, user profiles, and payment integration.',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1747676704/dating-events_im2wpb.png',
+    technologies: ['DJANGO', 'PYTHON', 'Postgresql'],
+    demoLink: null,
+    githubLink: 'https://github.com/hannahro15/CI-Feb25-hackathon',
+    featured: true,
+    order: 2
+  }
+];
+
+const mockCvData = [
+  {
+    id: 1,
+    type: 'experience',
+    data: {
+      title: 'Software Developer',
+      company: 'Phonetic Focus',
+      period: '2024 - Present',
+      description: 'Developing responsive web applications using React, TypeScript, and Node.js.'
+    },
+    order: 1
+  },
+  {
+    id: 2,
+    type: 'education',
+    data: {
+      institution: 'University of Development',
+      degree: 'BSc in Computer Science',
+      period: '2020 - 2024',
+      description: 'Focused on web development, algorithms, and data structures.'
+    },
+    order: 1
+  }
+];
+
 // Full interface for all CRUD operations needed
 export interface IStorage {
   // User methods
@@ -48,8 +101,8 @@ export interface IStorage {
 export class DrizzleStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    if (!db) {
-      console.error('Database connection not initialized');
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock data');
       return undefined;
     }
     
@@ -63,8 +116,8 @@ export class DrizzleStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    if (!db) {
-      console.error('Database connection not initialized');
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock data');
       return undefined;
     }
     
@@ -78,8 +131,12 @@ export class DrizzleStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    if (!db) {
-      throw new Error('Database connection not initialized');
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock response');
+      return {
+        id: 1,
+        ...insertUser
+      } as User;
     }
     
     const result = await db.insert(users).values(insertUser).returning();
@@ -88,8 +145,15 @@ export class DrizzleStorage implements IStorage {
   
   // Contact message methods
   async createContactMessage(message: InsertContactMessage): Promise<ContactMessage> {
-    if (!db) {
-      throw new Error('Database connection not initialized');
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock response');
+      const now = new Date();
+      return {
+        id: 1,
+        ...message,
+        createdAt: now,
+        read: false
+      } as ContactMessage;
     }
     
     const now = new Date();
@@ -104,8 +168,8 @@ export class DrizzleStorage implements IStorage {
   }
   
   async getContactMessages(): Promise<ContactMessage[]> {
-    if (!db) {
-      console.error('Database connection not initialized');
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock data');
       return [];
     }
     
@@ -120,7 +184,7 @@ export class DrizzleStorage implements IStorage {
   // Blog methods
   async getBlogPosts(): Promise<BlogPost[]> {
     if (!isDatabaseInitialized()) {
-      console.error('Database connection not initialized');
+      console.warn('Database not available, returning mock data');
       return [];
     }
     
@@ -137,7 +201,7 @@ export class DrizzleStorage implements IStorage {
   
   async getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
     if (!isDatabaseInitialized()) {
-      console.error('Database connection not initialized');
+      console.warn('Database not available, returning mock data');
       return undefined;
     }
     
@@ -156,8 +220,15 @@ export class DrizzleStorage implements IStorage {
   
   async createBlogPost(post: InsertBlogPost): Promise<BlogPost> {
     if (!isDatabaseInitialized()) {
-      console.error('Database connection not initialized. Make sure the database is properly configured.');
-      throw new Error('Database connection not initialized');
+      console.warn('Database not available, returning mock response');
+      const now = new Date();
+      return {
+        id: 1,
+        ...post,
+        published: post.published ?? true,
+        createdAt: now,
+        updatedAt: now
+      } as BlogPost;
     }
     
     try {
@@ -179,7 +250,7 @@ export class DrizzleStorage implements IStorage {
   
   async updateBlogPost(id: number, post: Partial<InsertBlogPost>): Promise<BlogPost | undefined> {
     if (!isDatabaseInitialized()) {
-      console.error('Database connection not initialized');
+      console.warn('Database not available, returning mock response');
       return undefined;
     }
     
@@ -204,8 +275,8 @@ export class DrizzleStorage implements IStorage {
   
   async deleteBlogPost(id: number): Promise<boolean> {
     if (!isDatabaseInitialized()) {
-      console.error('Database connection not initialized');
-      return false;
+      console.warn('Database not available, returning mock response');
+      return true;
     }
     
     try {
@@ -222,9 +293,9 @@ export class DrizzleStorage implements IStorage {
   
   // Portfolio methods
   async getPortfolioProjects(): Promise<PortfolioProject[]> {
-    if (!db) {
-      console.error('Database connection not initialized');
-      return [];
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock data');
+      return mockPortfolioProjects as PortfolioProject[];
     }
     
     try {
@@ -233,13 +304,22 @@ export class DrizzleStorage implements IStorage {
         .orderBy(portfolioProjects.order);
     } catch (error) {
       console.error('Error getting portfolio projects:', error);
-      return [];
+      return mockPortfolioProjects as PortfolioProject[];
     }
   }
   
   async createPortfolioProject(project: InsertPortfolioProject): Promise<PortfolioProject> {
-    if (!db) {
-      throw new Error('Database connection not initialized');
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock response');
+      return {
+        id: 99,
+        ...project,
+        shortTitle: project.shortTitle || null,
+        demoLink: project.demoLink || null,
+        githubLink: project.githubLink || null,
+        featured: project.featured ?? false,
+        order: project.order ?? 0
+      } as PortfolioProject;
     }
     
     const portfolioProject = {
@@ -257,9 +337,9 @@ export class DrizzleStorage implements IStorage {
   
   // CV data methods
   async getCvData(): Promise<CvData[]> {
-    if (!db) {
-      console.error('Database connection not initialized');
-      return [];
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock data');
+      return mockCvData as CvData[];
     }
     
     try {
@@ -268,13 +348,18 @@ export class DrizzleStorage implements IStorage {
         .orderBy(cvData.order);
     } catch (error) {
       console.error('Error getting CV data:', error);
-      return [];
+      return mockCvData as CvData[];
     }
   }
   
   async createCvData(data: InsertCvData): Promise<CvData> {
-    if (!db) {
-      throw new Error('Database connection not initialized');
+    if (!isDatabaseInitialized()) {
+      console.warn('Database not available, returning mock response');
+      return {
+        id: 99,
+        ...data,
+        order: data.order ?? 0
+      } as CvData;
     }
     
     const cvDataItem = {
@@ -284,79 +369,6 @@ export class DrizzleStorage implements IStorage {
     
     const result = await db.insert(cvData).values(cvDataItem).returning();
     return result[0];
-  }
-  
-  // Initialize demo data for development (can be used to seed the database)
-  async initDemoData() {
-    if (!db) {
-      console.error('Database connection not initialized');
-      return;
-    }
-    
-    try {
-      // Check if data already exists
-      const existingPosts = await db.select().from(blogPosts);
-      if (existingPosts.length > 0) {
-        console.log('Demo data already initialized, skipping...');
-        return;
-      }
-      
-      // Add sample blog posts
-      await this.createBlogPost({
-        slug: 'getting-started-with-web-development',
-        title: 'Getting Started with Web Development',
-        excerpt: 'A beginner\'s guide to starting your journey in web development.',
-        content: 'This is a sample blog post content about web development basics.',
-        date: '2023-09-15',
-        readTime: '5 min',
-        category: 'Web Development',
-        categoryColor: 'blue',
-        image: '/images/blog/web-dev.jpg',
-        published: true
-      });
-      
-      await this.createBlogPost({
-        slug: 'mastering-react-hooks',
-        title: 'Mastering React Hooks',
-        excerpt: 'Learn how to use React Hooks effectively in your projects.',
-        content: 'This is a sample blog post content about React Hooks.',
-        date: '2023-10-20',
-        readTime: '8 min',
-        category: 'React',
-        categoryColor: 'green',
-        image: '/images/blog/react-hooks.jpg',
-        published: true
-      });
-      
-      // Add sample portfolio projects
-      await this.createPortfolioProject({
-        title: 'E-commerce Platform',
-        shortTitle: 'E-commerce',
-        description: 'A full-stack e-commerce platform with payment integration.',
-        image: '/images/portfolio/ecommerce.jpg',
-        technologies: ['React', 'Node.js', 'Express', 'MongoDB', 'Stripe'],
-        demoLink: 'https://example.com/demo1',
-        githubLink: 'https://github.com/username/ecommerce',
-        featured: true,
-        order: 1
-      });
-      
-      await this.createPortfolioProject({
-        title: 'Task Management App',
-        shortTitle: 'Task App',
-        description: 'A responsive task management application with drag-and-drop functionality.',
-        image: '/images/portfolio/task-app.jpg',
-        technologies: ['React', 'TypeScript', 'Firebase', 'Tailwind CSS'],
-        demoLink: 'https://example.com/demo2',
-        githubLink: 'https://github.com/username/task-app',
-        featured: true,
-        order: 2
-      });
-      
-      console.log('Demo data initialized successfully');
-    } catch (error) {
-      console.error('Error initializing demo data:', error);
-    }
   }
 }
 

@@ -1,7 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
 import { setupVite, serveStatic, log } from "./vite.js";
-import { isDatabaseInitialized } from "./db.js"; // Import the database check
 
 const app = express();
 app.use(express.json());
@@ -38,19 +37,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Wait for database to be ready before starting the server
-  let dbCounter = 0;
-  // Check every second for up to 10 seconds if DB is initialized
-  while (!isDatabaseInitialized() && dbCounter < 10) {
-    console.log(`Waiting for database initialization... (${dbCounter + 1}/10)`);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    dbCounter++;
-  }
-  
-  if (!isDatabaseInitialized()) {
-    console.error('Database failed to initialize after 10 seconds. Server may not function correctly.');
-  }
-  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -70,14 +56,30 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use port 5000 by default, but allow for dynamic port assignment
-  // through environment variables to handle port conflicts
-  const port = process.env.PORT || 5000;
-  server.listen({
-    port,
-    host: "localhost",
-    // reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+  // Try different ports if the default one is in use
+  const tryPort = (port: number, maxAttempts: number = 5) => {
+    if (maxAttempts <= 0) {
+      log(`Could not find an available port after ${maxAttempts} attempts`);
+      process.exit(1);
+      return;
+    }
+
+    server.listen({
+      port,
+      host: "localhost",
+    }).on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE') {
+        log(`Port ${port} is in use, trying port ${port + 10}...`);
+        tryPort(port + 10, maxAttempts - 1);
+      } else {
+        log(`Error starting server: ${error.message}`);
+        throw error;
+      }
+    }).on('listening', () => {
+      log(`Server running at http://localhost:${port}`);
+    });
+  };
+
+  // Start with port 5000 and try up to 5 different ports
+  tryPort(5000);
 })();

@@ -1,5 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
-  "outputDirectory": "dist" 
+  "rewrites": [
+    { "source": "/blog/(.*)", "destination": "/blog/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

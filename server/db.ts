@@ -53,14 +53,14 @@ async function loadDatabaseConfig() {
           if (databaseUrl) {
             console.log('Database URL loaded from config file');
           } else {
-            console.error('DATABASE_URL not found in config file');
+            console.warn('DATABASE_URL not found in config file');
           }
         } catch (err) {
-          console.error('Error importing config:', err);
+          console.warn('Error importing config:', err);
         }
       }
     } catch (error) {
-      console.error('Error checking for config file:', error);
+      console.warn('Error checking for config file:', error);
     }
   }
   
@@ -68,7 +68,7 @@ async function loadDatabaseConfig() {
   if (databaseUrl) {
     return initializeDatabase(databaseUrl);
   } else {
-    console.error('No DATABASE_URL found in environment or config');
+    console.warn('No DATABASE_URL found in environment or config - continuing without database');
     return false;
   }
 }
@@ -78,7 +78,7 @@ loadDatabaseConfig().then(success => {
   if (success) {
     console.log('Database ready for use');
   } else {
-    console.error('Failed to initialize database connection');
+    console.warn('Running without database connection - some features may be limited');
   }
 });
 
