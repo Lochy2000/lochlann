@@ -44,26 +44,12 @@ const App: React.FC = () => {
   console.log('Hash path (if any):', hashPath);
   
   useEffect(() => {
-    // Handle direct access - ensure the home page is shown when accessing the root
-    const showHome = () => {
-      if (window.location.pathname === '/' && !window.location.hash) {
-        const rootElement = document.getElementById('root');
-        if (rootElement && rootElement.childNodes.length === 0) {
-          console.log('Forcing reload for home page');
-          window.location.reload();
-        }
-      }
-    };
-    
     // Check if we have a hash-based route
     if (window.location.hash && window.location.hash.startsWith('#/admin')) {
       console.log('Detected admin hash route, redirecting...');
       const adminPath = window.location.hash.substring(1); // Remove the # character
       window.history.replaceState(null, '', adminPath);
       window.location.reload();
-    } else {
-      // Make sure home page is loaded
-      showHome();
     }
   }, []);
   

@@ -37,12 +37,42 @@ function runCommand(command, args, cwd) {
   });
 }
 
+// Function to copy directory recursively
+function copyDirectory(source, destination) {
+  if (!fs.existsSync(destination)) {
+    fs.mkdirSync(destination, { recursive: true });
+  }
+  
+  const files = fs.readdirSync(source);
+  
+  for (const file of files) {
+    const sourceFile = path.join(source, file);
+    const destFile = path.join(destination, file);
+    
+    if (fs.statSync(sourceFile).isDirectory()) {
+      copyDirectory(sourceFile, destFile);
+    } else {
+      fs.copyFileSync(sourceFile, destFile);
+    }
+  }
+}
+
 async function buildForVercel() {
   try {
     // Build the portfolio using vite
     await runCommand('npx', ['vite', 'build'], projectRoot);
     
     console.log('✅ Portfolio build completed');
+    
+    // Copy attached_assets to the dist directory so they're accessible
+    const assetsSource = path.join(projectRoot, 'attached_assets');
+    const assetsDestination = path.join(projectRoot, 'dist', 'attached_assets');
+    
+    if (fs.existsSync(assetsSource)) {
+      console.log('📁 Copying attached assets...');
+      copyDirectory(assetsSource, assetsDestination);
+      console.log('✅ Assets copied successfully');
+    }
     
     // Verify the build
     const buildPath = path.join(projectRoot, 'dist', 'public');

@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { experiences, educationTimeline, certifications } from '@/data/experience';
-import { skills } from '@/data/skills';
 import { FaDownload } from 'react-icons/fa';
 
 const CV = () => {
@@ -10,13 +8,13 @@ const CV = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Redirect to the CV file directly
-    const cvFilePath = '/attached_assets/files/cv.pdf';
+    // Use the correct path to the CV file
+    const cvFilePath = '/attached_assets/files/Lochlann_OHiggins_CV.pdf';
     
     // Create a link and trigger download
     const link = document.createElement('a');
     link.href = cvFilePath;
-    link.download = 'cv.pdf';
+    link.download = 'Lochlann_OHiggins_CV.pdf';
     document.body.appendChild(link);
     
     // This timeout allows the redirect to happen after the component mounts
@@ -41,14 +39,15 @@ const CV = () => {
         <title>Downloading CV | Lochlann O'Higgins</title>
       </Helmet>
       
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 text-white">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Your CV is downloading...</h1>
-          <p className="mb-6">If the download doesn't start automatically, please click the button below.</p>
+          <FaDownload className="mx-auto text-6xl mb-6 text-blue-400" />
+          <h1 className="text-3xl font-bold mb-4">Your CV is downloading...</h1>
+          <p className="mb-6 text-slate-300">If the download doesn't start automatically, please click the button below.</p>
           <a
             href="/attached_assets/files/Lochlann_OHiggins_CV.pdf"
             download="Lochlann_OHiggins_CV.pdf"
-            className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+            className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
           >
             <FaDownload className="mr-2" /> Download CV
           </a>

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaTimes, FaSignOutAlt } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaCheck, FaTimes, FaSignOutAlt, FaCog } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { firebaseBlogService, type BlogPost } from '../../utils/firebaseBlogService';
 import { RichTextEditor, ImageUploader } from '../../components/Editor';
 import ErrorBoundary from '../../components/ErrorBoundary';
+import CategoryManager from '../../components/CategoryManager';
 import { useAuth } from '../../context/AuthContext';
 
 // Firebase Auth implementation
@@ -16,9 +17,17 @@ const AdminDashboard: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [loginError, setLoginError] = useState<string>('');
   const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
+  const [showCategoryManager, setShowCategoryManager] = useState<boolean>(false);
   const [currentPost, setCurrentPost] = useState<Partial<BlogPost> | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Fetch categories for the editor dropdown
+  const { data: availableCategories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => firebaseBlogService.getCategories(),
+    enabled: isAuthenticated
+  });
 
   // Helper function to clean post data and ensure all fields are properly formatted
   const cleanPostData = (post: Partial<BlogPost>) => {
@@ -244,15 +253,25 @@ const AdminDashboard: React.FC = () => {
       alert('Title and content are required');
       return;
     }
+
+    // Find the selected category to get its slug and color
+    const selectedCategory = availableCategories?.find(cat => cat.name === currentPost.category);
     
-    console.log('Submitting post data:', currentPost);
+    // Prepare post data with proper category information
+    const postData = {
+      ...currentPost,
+      categorySlug: selectedCategory?.slug || currentPost.category?.toLowerCase().replace(/\s+/g, '-') || 'uncategorized',
+      categoryColor: selectedCategory?.color || currentPost.categoryColor || 'bg-gray-500'
+    };
+    
+    console.log('Submitting post data:', postData);
     
     if (currentPost.id) {
       // Update existing post
-      updatePostMutation.mutate(currentPost);
+      updatePostMutation.mutate(postData);
     } else {
       // Create new post
-      createPostMutation.mutate(currentPost);
+      createPostMutation.mutate(postData);
     }
   };
   
@@ -352,34 +371,25 @@ const AdminDashboard: React.FC = () => {
               <select
                 className="lofi-input w-full"
                 value={currentPost?.category || ''}
-                onChange={(e) => handleFieldChange('category', e.target.value)}
+                onChange={(e) => {
+                  const selectedCategory = availableCategories?.find(cat => cat.name === e.target.value);
+                  handleFieldChange('category', e.target.value);
+                  // Auto-set category color when category is selected
+                  if (selectedCategory) {
+                    handleFieldChange('categoryColor', selectedCategory.color);
+                  }
+                }}
               >
                 <option value="">Select Category</option>
-                <option value="Web Development">Web Development</option>
-                <option value="React">React</option>
-                <option value="Databases">Databases</option>
-                <option value="Tutorials">Tutorials</option>
-                <option value="Tools">Tools</option>
-                <option value="Coffee Thoughts">Coffee Thoughts</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Category Color
-              </label>
-              <select
-                className="lofi-input w-full"
-                value={currentPost?.categoryColor || ''}
-                onChange={(e) => handleFieldChange('categoryColor', e.target.value)}
-              >
-                <option value="">Select Color</option>
-                <option value="bg-blue-500">Blue</option>
-                <option value="bg-green-500">Green</option>
-                <option value="bg-red-500">Red</option>
-                <option value="bg-purple-500">Purple</option>
-                <option value="bg-yellow-500">Yellow</option>
-                <option value="bg-coffee">Coffee</option>
+                {availableCategories?.length > 0 ? (
+                  availableCategories.map(category => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>Loading categories...</option>
+                )}
               </select>
             </div>
             
@@ -407,8 +417,10 @@ const AdminDashboard: React.FC = () => {
                 placeholder="e.g. 5 min read"
               />
             </div>
-            
-            <div className="col-span-1 md:col-span-2">
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
               <ImageUploader
                 label="Featured Image URL"
                 currentUrl={currentPost?.image || ''}
@@ -509,6 +521,16 @@ const AdminDashboard: React.FC = () => {
                 </button>
                 
                 <button
+                  className={`lofi-button-secondary ${showCategoryManager ? 'bg-blue-600 text-white' : ''}`}
+                  onClick={() => {
+                    setShowCategoryManager(!showCategoryManager);
+                    setShowCreateForm(false);
+                  }}
+                >
+                  <FaCog className="mr-2" /> Categories
+                </button>
+                
+                <button
                   className="lofi-button"
                   onClick={() => {
                     setCurrentPost({
@@ -518,8 +540,8 @@ const AdminDashboard: React.FC = () => {
                       excerpt: '',
                       slug: '',
                       image: '',
-                      category: 'Coffee Thoughts',
-                      categoryColor: 'bg-blue-500',
+                      category: 'Uncategorized', // Use a default category that exists
+                      categoryColor: 'bg-gray-500',
                       date: new Date().toISOString().split('T')[0],
                       readTime: '5 min read',
                       tags: [], // Always initialize as empty array
@@ -527,6 +549,7 @@ const AdminDashboard: React.FC = () => {
                       featured: false
                     });
                     setShowCreateForm(true);
+                    setShowCategoryManager(false);
                   }}
                 >
                   <FaPlus className="mr-2" /> New Post
@@ -561,6 +584,16 @@ const AdminDashboard: React.FC = () => {
               </button>
             </div>
           </div>
+          
+          {/* Category Manager */}
+          {showCategoryManager && (
+            <CategoryManager 
+              onCategoryCreated={() => {
+                // Optionally refresh blog posts if needed
+                queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
+              }}
+            />
+          )}
           
           {/* Create/Edit Form */}
           {showCreateForm && renderPostForm()}

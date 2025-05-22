@@ -84,6 +84,18 @@ export interface BlogPost {
   };
 }
 
+// Category type definition
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+  description?: string;
+  postCount?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Default author info
 const defaultAuthor = {
   name: 'Lochlann O\'Higgins',
@@ -137,6 +149,7 @@ const sampleBlogPosts: Omit<BlogPost, 'id'>[] = [
 
 class FirebaseBlogService {
   private collectionName = 'blog_posts';
+  private categoriesCollectionName = 'categories';
   private initialized = false;
   
   // Initialize the database with sample data if empty
@@ -144,6 +157,9 @@ class FirebaseBlogService {
     if (this.initialized) return;
     
     try {
+      // Initialize categories first
+      await this.initializeDefaultCategories();
+      
       console.log('Checking for existing blog posts...');
       const querySnapshot = await getDocs(collection(db, this.collectionName));
       
@@ -522,6 +538,232 @@ class FirebaseBlogService {
       .replace(/[^\w\s]/gi, '')  // Remove special characters
       .replace(/\s+/g, '-')      // Replace spaces with hyphens
       .replace(/-+/g, '-');      // Remove consecutive hyphens
+  }
+
+  // ========== CATEGORY MANAGEMENT METHODS ==========
+  
+  // Get all categories
+  async getCategories(): Promise<Category[]> {
+    try {
+      const querySnapshot = await getDocs(collection(db, this.categoriesCollectionName));
+      const categories = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Category[];
+
+      // Calculate post count for each category
+      const categoriesWithCount = await Promise.all(
+        categories.map(async (category) => {
+          const postCount = await this.getCategoryPostCount(category.slug);
+          return { ...category, postCount };
+        })
+      );
+
+      return categoriesWithCount.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      return [];
+    }
+  }
+
+  // Get category post count
+  async getCategoryPostCount(categorySlug: string): Promise<number> {
+    try {
+      const q = query(
+        collection(db, this.collectionName),
+        where('categorySlug', '==', categorySlug),
+        where('published', '==', true)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.size;
+    } catch (error) {
+      console.error('Error getting category post count:', error);
+      return 0;
+    }
+  }
+
+  // Create a new category
+  async createCategory(category: Omit<Category, 'id'>): Promise<Category> {
+    try {
+      // Generate slug if not provided
+      const slug = category.slug || this.generateSlug(category.name);
+      
+      const newCategory = {
+        ...category,
+        slug,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      console.log('Creating category:', newCategory);
+      
+      const docRef = await addDoc(collection(db, this.categoriesCollectionName), newCategory);
+      console.log('Category created with ID:', docRef.id);
+      
+      return {
+        id: docRef.id,
+        ...newCategory
+      } as Category;
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw error;
+    }
+  }
+
+  // Update an existing category
+  async updateCategory(id: string, updatedCategory: Partial<Category>): Promise<Category | null> {
+    try {
+      console.log(`Updating category ID: ${id}`);
+      
+      const docRef = doc(db, this.categoriesCollectionName, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        console.error(`Category with ID ${id} does not exist`);
+        return null;
+      }
+
+      // Process the update data
+      const updateData: Record<string, any> = {};
+      
+      Object.entries(updatedCategory).forEach(([key, value]) => {
+        if (value !== undefined && key !== 'id') {
+          updateData[key] = value;
+        }
+      });
+
+      // Update slug if name is being updated
+      if (updatedCategory.name && updatedCategory.name !== docSnap.data().name) {
+        updateData.slug = this.generateSlug(updatedCategory.name);
+      }
+
+      updateData.updatedAt = new Date().toISOString();
+      
+      console.log('Applying category updates:', updateData);
+      
+      await updateDoc(docRef, updateData);
+      console.log('Category updated successfully');
+      
+      // Get the updated document
+      const updatedDocSnap = await getDoc(docRef);
+      
+      return {
+        id: updatedDocSnap.id,
+        ...updatedDocSnap.data()
+      } as Category;
+    } catch (error) {
+      console.error('Error updating category:', error);
+      return null;
+    }
+  }
+
+  // Delete a category
+  async deleteCategory(id: string): Promise<boolean> {
+    try {
+      console.log(`Deleting category with ID: ${id}`);
+      
+      const docRef = doc(db, this.categoriesCollectionName, id);
+      const docSnap = await getDoc(docRef);
+      
+      if (!docSnap.exists()) {
+        console.error(`Category with ID ${id} does not exist`);
+        return false;
+      }
+      
+      // Check if category has posts
+      const categoryData = docSnap.data();
+      const postCount = await this.getCategoryPostCount(categoryData.slug);
+      
+      if (postCount > 0) {
+        throw new Error(`Cannot delete category "${categoryData.name}" because it has ${postCount} posts. Please move or delete the posts first.`);
+      }
+      
+      await deleteDoc(docRef);
+      console.log(`Category deleted successfully: ${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw error;
+    }
+  }
+
+  // Initialize default categories
+  async initializeDefaultCategories(): Promise<void> {
+    try {
+      console.log('Checking for existing categories...');
+      const querySnapshot = await getDocs(collection(db, this.categoriesCollectionName));
+      
+      if (querySnapshot.empty) {
+        console.log('No categories found. Adding default categories...');
+        
+        const defaultCategories = [
+          {
+            name: 'Web Development',
+            slug: 'web-development',
+            color: 'bg-blue-500',
+            description: 'Frontend and backend web development tutorials and insights'
+          },
+          {
+            name: 'React',
+            slug: 'react',
+            color: 'bg-green-500',
+            description: 'React.js tutorials, hooks, and best practices'
+          },
+          {
+            name: 'Databases',
+            slug: 'databases',
+            color: 'bg-red-500',
+            description: 'Database design, optimization, and management'
+          },
+          {
+            name: 'Tools',
+            slug: 'tools',
+            color: 'bg-purple-500',
+            description: 'Developer tools, utilities, and productivity tips'
+          },
+          {
+            name: 'Coffee Thoughts',
+            slug: 'coffee-thoughts',
+            color: 'bg-coffee',
+            description: 'Random thoughts and musings over a cup of coffee'
+          },
+          {
+            name: 'Coding',
+            slug: 'coding',
+            color: 'bg-indigo-500',
+            description: 'General programming concepts and techniques'
+          },
+          {
+            name: 'Hacking',
+            slug: 'hacking',
+            color: 'bg-orange-500',
+            description: 'Ethical hacking, cybersecurity, and penetration testing'
+          },
+          {
+            name: 'Tutorials',
+            slug: 'tutorials',
+            color: 'bg-teal-500',
+            description: 'Step-by-step tutorials and learning guides'
+          },
+          {
+            name: 'Uncategorized',
+            slug: 'uncategorized',
+            color: 'bg-gray-500',
+            description: 'Posts that don\'t fit into other categories'
+          }
+        ];
+
+        for (const category of defaultCategories) {
+          await this.createCategory(category);
+        }
+        
+        console.log('Default categories initialized successfully');
+      } else {
+        console.log(`Found ${querySnapshot.size} existing categories, skipping initialization`);
+      }
+    } catch (error) {
+      console.error('Error initializing default categories:', error);
+    }
   }
 }
 

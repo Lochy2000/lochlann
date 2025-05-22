@@ -4,8 +4,10 @@ import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { FaCalendarAlt, FaClock, FaTag, FaCoffee, FaCode, FaTerminal, FaSearch } from 'react-icons/fa';
-import { firebaseBlogService, type BlogPost } from '../utils/firebaseBlogService';
+import { firebaseBlogService, type BlogPost, type Category } from '../utils/firebaseBlogService';
 import ParallaxVideo from '../components/ParallaxVideo';
+import FilterDropdown from '../components/FilterDropdown';
+import '../styles/blog-dropdown-fix.css';
 
 // Animation variants
 const containerVariants = {
@@ -77,18 +79,13 @@ const mockBlogPosts: MockBlogPost[] = [
 ];
 
 // Available categories for the filter
-const categories = [
-  { name: 'All', slug: 'all' },
-  { name: 'Web Development', slug: 'web-development' },
-  { name: 'React', slug: 'react' },
-  { name: 'Databases', slug: 'databases' },
-  { name: 'Tools', slug: 'tools' },
-  { name: 'Uncategorized', slug: 'uncategorized' }
-];
+// Now fetched dynamically from Firebase
 
 const Blog: React.FC = () => {
   const { category: categoryParam, tag: tagParam } = useParams();
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
+  const [selectedSort, setSelectedSort] = useState('newest');
+  const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Set category from URL params on load
@@ -98,12 +95,43 @@ const Blog: React.FC = () => {
     }
   }, [categoryParam]);
   
-  // Set tag filter from URL params on load
-  useEffect(() => {
-    if (tagParam) {
-      setSearchQuery(`#${tagParam}`);
-    }
-  }, [tagParam]);
+  // Fetch categories from Firebase (no authentication required for reading)
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      try {
+        console.log('Fetching categories for blog filter...');
+        const cats = await firebaseBlogService.getCategories();
+        console.log('Fetched categories:', cats);
+        
+        // Add "All" category at the beginning
+        const allCategories = [
+          { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
+          ...cats
+        ];
+        
+        console.log('Categories with All:', allCategories);
+        return allCategories;
+      } catch (error) {
+        console.error('Error fetching categories, using fallback:', error);
+        // Fallback categories with all the default ones
+        return [
+          { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
+          { id: '1', name: 'Web Development', slug: 'web-development', color: 'bg-blue-500', createdAt: '', updatedAt: '' },
+          { id: '2', name: 'React', slug: 'react', color: 'bg-green-500', createdAt: '', updatedAt: '' },
+          { id: '3', name: 'Databases', slug: 'databases', color: 'bg-red-500', createdAt: '', updatedAt: '' },
+          { id: '4', name: 'Tools', slug: 'tools', color: 'bg-purple-500', createdAt: '', updatedAt: '' },
+          { id: '5', name: 'Coffee Thoughts', slug: 'coffee-thoughts', color: 'bg-coffee', createdAt: '', updatedAt: '' },
+          { id: '6', name: 'Coding', slug: 'coding', color: 'bg-indigo-500', createdAt: '', updatedAt: '' },
+          { id: '7', name: 'Hacking', slug: 'hacking', color: 'bg-orange-500', createdAt: '', updatedAt: '' },
+          { id: '8', name: 'Tutorials', slug: 'tutorials', color: 'bg-teal-500', createdAt: '', updatedAt: '' },
+          { id: '9', name: 'Uncategorized', slug: 'uncategorized', color: 'bg-gray-500', createdAt: '', updatedAt: '' }
+        ];
+      }
+    },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    cacheTime: 10 * 60 * 1000 // Keep in cache for 10 minutes
+  });
 
   // Fetch blog posts from Firebase
   const { data: blogPosts, isLoading, error } = useQuery({
@@ -149,14 +177,63 @@ const Blog: React.FC = () => {
     }
   });
 
-  // Filter posts based on category and search query
+  // Set tag filter from URL params on load
+  useEffect(() => {
+    if (tagParam) {
+      setSearchQuery(`#${tagParam}`);
+    }
+  }, [tagParam]);
+
+  // Filter posts based on category, search query, sort, and filter
   const filteredPosts = (blogPosts || []).filter(post => {
     const matchesCategory = selectedCategory === 'all' || post.categorySlug === selectedCategory;
     const matchesSearch = !searchQuery || 
       post.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
       post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesCategory && matchesSearch;
+    let matchesFilter = true;
+    if (selectedFilter !== 'all') {
+      const tags = Array.isArray(post.tags) ? post.tags : [];
+      switch (selectedFilter) {
+        case 'coding':
+          matchesFilter = tags.some(tag => ['javascript', 'python', 'react', 'coding', 'programming'].includes(tag.toLowerCase()));
+          break;
+        case 'hacking':
+          matchesFilter = tags.some(tag => ['security', 'hacking', 'cybersecurity', 'pentesting'].includes(tag.toLowerCase()));
+          break;
+        case 'tutorials':
+          matchesFilter = post.category?.toLowerCase().includes('tutorial') || 
+                         tags.some(tag => tag.toLowerCase().includes('tutorial'));
+          break;
+        case 'tools':
+          matchesFilter = post.category?.toLowerCase() === 'tools' || 
+                         tags.some(tag => ['tools', 'utilities', 'software'].includes(tag.toLowerCase()));
+          break;
+        case 'coffee-thoughts':
+          matchesFilter = post.category?.toLowerCase().includes('coffee');
+          break;
+        default:
+          matchesFilter = true;
+      }
+    }
+    
+    return matchesCategory && matchesSearch && matchesFilter;
+  }).sort((a, b) => {
+    // Apply sorting
+    switch (selectedSort) {
+      case 'oldest':
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      case 'featured':
+        if (a.featured && !b.featured) return -1;
+        if (!a.featured && b.featured) return 1;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      case 'popular':
+        // For now, just sort by date. In the future, you could add view counts
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      case 'newest':
+      default:
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+    }
   });
 
   // Get featured posts
@@ -226,23 +303,18 @@ const Blog: React.FC = () => {
                 </form>
               </motion.div>
               
-              <motion.div 
-              className="flex flex-wrap justify-center gap-2"
-              variants={itemVariants}
-              >
-              {categories.map(category => (
-              <button
-              key={category.slug}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${
-              selectedCategory === category.slug
-              ? 'bg-purple-600 text-white shadow-neon-purple border border-purple-400/50'
-              : 'bg-slate-800/80 text-slate-300 border border-slate-600/50 hover:bg-slate-700/90 hover:border-purple-500/30'
-              }`}
-              onClick={() => setSelectedCategory(category.slug)}
-              >
-              {category.name}
-              </button>
-              ))}
+              <motion.div variants={itemVariants}>
+                <div style={{ position: 'relative', zIndex: 99999 }}>
+                  <FilterDropdown
+                    categories={categories || []}
+                    selectedCategory={selectedCategory}
+                    selectedSort={selectedSort}
+                    selectedFilter={selectedFilter}
+                    onCategoryChange={setSelectedCategory}
+                    onSortChange={setSelectedSort}
+                    onFilterChange={setSelectedFilter}
+                  />
+                </div>
               </motion.div>
             </div>
           </motion.section>
@@ -251,21 +323,15 @@ const Blog: React.FC = () => {
         {/* Category filter for non-home pages */}
         {(categoryParam || tagParam || searchQuery) && (
           <div className="container mx-auto px-4 py-4">
-            <div className="flex flex-wrap gap-2 mb-4 justify-center">
-              {categories.map(category => (
-                <Link
-                  key={category.slug}
-                  to={category.slug === 'all' ? '/' : `/category/${category.slug}`}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-300 ${
-                    selectedCategory === category.slug
-                    ? 'bg-purple-600 text-white shadow-neon-purple border border-purple-400/50'
-                    : 'bg-slate-800/80 text-slate-300 border border-slate-600/50 hover:bg-slate-700/90 hover:border-purple-500/30'
-                  }`}
-                >
-                  {category.name}
-                </Link>
-              ))}
-            </div>
+            <FilterDropdown
+              categories={categories || []}
+              selectedCategory={selectedCategory}
+              selectedSort={selectedSort}
+              selectedFilter={selectedFilter}
+              onCategoryChange={setSelectedCategory}
+              onSortChange={setSelectedSort}
+              onFilterChange={setSelectedFilter}
+            />
           </div>
         )}
         
@@ -332,8 +398,12 @@ const Blog: React.FC = () => {
               {searchQuery 
                 ? `Search Results for "${searchQuery}"`
                 : selectedCategory !== 'all'
-                  ? `${categories.find(cat => cat.slug === selectedCategory)?.name} Posts`
-                  : 'Recent Posts'
+                  ? `${categories?.find(cat => cat.slug === selectedCategory)?.name} Posts`
+                  : selectedFilter !== 'all'
+                    ? `${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1).replace('-', ' ')} Posts`
+                    : selectedSort === 'featured'
+                      ? 'Featured Posts'
+                      : 'Recent Posts'
               }
             </h2>
             
