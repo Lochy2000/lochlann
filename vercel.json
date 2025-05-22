@@ -23,10 +23,7 @@
   ],
   "rewrites": [
     { "source": "/", "destination": "/public/index.html" },
-    { "source": "/assets/(.*)", "destination": "/public/assets/$1" }, 
-    { "source": "/blog/admin-direct", "destination": "/blog/admin-direct.html" },
-    { "source": "/blog/admin", "destination": "/blog/index.html" },
-    { "source": "/blog", "destination": "/blog/index.html" },
-    { "source": "/blog/(.*)", "destination": "/blog/index.html" }
+    { "source": "/assets/(.*)", "destination": "/public/assets/$1" },
+    { "source": "/(.*)", "destination": "/public/index.html" }
   ]
 }

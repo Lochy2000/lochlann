@@ -90,7 +90,7 @@ const HolisticSection = () => {
     {
       category: 'diving',
       title: 'PADI Certification',
-      description: 'Licensed free diver and scuba diver exploring depths up to 15 meters.',
+      description: 'Licensed free diver and scuba diver exploring depths up to 30 meters.',
       detailedDescription: 'Holding a PADI license allows me to explore underwater environments safely. I\'ve developed skills in both free diving and scuba diving, which have opened up an entirely new world of exploration and adventure beneath the surface.',
       icon: FaWater,
       color: 'cyan-500'

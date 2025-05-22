@@ -390,7 +390,7 @@ const ShaderGradientHero = () => {
             <div className="relative w-64 h-64 md:w-96 md:h-96">
               <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-md blur-2xl"></div>
               <img 
-                src="https://res.cloudinary.com/dpw2txejq/image/upload/v1747665372/PHOTO-2023-07-05-07-00-24_r3bchf.jpg"
+                src="https://res.cloudinary.com/dpw2txejq/image/upload/v1747907892/lochybg_llmsfp.png"
                 alt="Lochlann O'Higgins" 
                 className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full border-4 border-white/20 shadow-xl z-10 relative"
               />

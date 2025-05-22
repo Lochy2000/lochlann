@@ -61,7 +61,7 @@ const Header = () => {
             Portfolio
           </Link>
           <a 
-            href={blogUrl}
+            href={'https://lochlann.vercel.app/'}
             className={`${location.pathname.startsWith('/blog') ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
             Blog
           </a>
