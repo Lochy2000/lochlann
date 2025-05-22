@@ -74,6 +74,14 @@ async function buildForVercel() {
       console.log('✅ Assets copied successfully');
     }
     
+    // Also copy to public directory for consistency
+    const publicAssetsDestination = path.join(projectRoot, 'dist', 'public', 'attached_assets');
+    if (fs.existsSync(assetsSource)) {
+      console.log('📁 Copying attached assets to public...');
+      copyDirectory(assetsSource, publicAssetsDestination);
+      console.log('✅ Public assets copied successfully');
+    }
+    
     // Verify the build
     const buildPath = path.join(projectRoot, 'dist', 'public');
     if (fs.existsSync(buildPath)) {

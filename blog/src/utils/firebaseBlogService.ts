@@ -701,55 +701,73 @@ class FirebaseBlogService {
             name: 'Web Development',
             slug: 'web-development',
             color: 'bg-blue-500',
-            description: 'Frontend and backend web development tutorials and insights'
+            description: 'Frontend and backend web development tutorials and insights',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'React',
             slug: 'react',
             color: 'bg-green-500',
-            description: 'React.js tutorials, hooks, and best practices'
+            description: 'React.js tutorials, hooks, and best practices',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'Databases',
             slug: 'databases',
             color: 'bg-red-500',
-            description: 'Database design, optimization, and management'
+            description: 'Database design, optimization, and management',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'Tools',
             slug: 'tools',
             color: 'bg-purple-500',
-            description: 'Developer tools, utilities, and productivity tips'
+            description: 'Developer tools, utilities, and productivity tips',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'Coffee Thoughts',
             slug: 'coffee-thoughts',
             color: 'bg-coffee',
-            description: 'Random thoughts and musings over a cup of coffee'
+            description: 'Random thoughts and musings over a cup of coffee',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'Coding',
             slug: 'coding',
             color: 'bg-indigo-500',
-            description: 'General programming concepts and techniques'
+            description: 'General programming concepts and techniques',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'Hacking',
             slug: 'hacking',
             color: 'bg-orange-500',
-            description: 'Ethical hacking, cybersecurity, and penetration testing'
+            description: 'Ethical hacking, cybersecurity, and penetration testing',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'Tutorials',
             slug: 'tutorials',
             color: 'bg-teal-500',
-            description: 'Step-by-step tutorials and learning guides'
+            description: 'Step-by-step tutorials and learning guides',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           },
           {
             name: 'Uncategorized',
             slug: 'uncategorized',
             color: 'bg-gray-500',
-            description: 'Posts that don\'t fit into other categories'
+            description: 'Posts that don\'t fit into other categories',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
           }
         ];
 

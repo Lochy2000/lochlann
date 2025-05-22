@@ -1,4 +1,4 @@
-/* BlogPage specific styles for dropdown z-index fix */
+/* Simple dropdown fix - consistent across all pages */
 .blog-filter-dropdown {
   position: relative !important;
   z-index: 99999 !important;
@@ -7,28 +7,4 @@
 .blog-filter-dropdown .dropdown-menu {
   position: absolute !important;
   z-index: 99999 !important;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-/* Ensure sections don't create stacking context conflicts */
-section[data-section] {
-  position: relative;
-  z-index: 1;
-}
-
-/* Override any potential z-index conflicts from video/background elements */
-.parallax-video,
-.lofi-bg,
-.bg-video {
-  z-index: 0 !important;
-}
-
-/* Featured posts section should not interfere with dropdowns */
-section[data-section="featured-posts"] {
-  z-index: 1 !important;
-}
-
-section[data-section="recent-posts"] {
-  z-index: 1 !important;
 }

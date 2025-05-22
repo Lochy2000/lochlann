@@ -87,6 +87,8 @@ const Blog: React.FC = () => {
   const [selectedSort, setSelectedSort] = useState('newest');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 9;
 
   // Set category from URL params on load
   useEffect(() => {
@@ -96,49 +98,57 @@ const Blog: React.FC = () => {
   }, [categoryParam]);
   
   // Fetch categories from Firebase (no authentication required for reading)
-  const { data: categories } = useQuery({
+  const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
+      console.log('Fetching categories for blog filter...');
+      
+      // Always provide fallback categories first
+      const fallbackCategories = [
+        { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
+        { id: '1', name: 'Web Development', slug: 'web-development', color: 'bg-blue-500', createdAt: '', updatedAt: '' },
+        { id: '2', name: 'React', slug: 'react', color: 'bg-green-500', createdAt: '', updatedAt: '' },
+        { id: '3', name: 'Databases', slug: 'databases', color: 'bg-red-500', createdAt: '', updatedAt: '' },
+        { id: '4', name: 'Tools', slug: 'tools', color: 'bg-purple-500', createdAt: '', updatedAt: '' },
+        { id: '5', name: 'Coffee Thoughts', slug: 'coffee-thoughts', color: 'bg-coffee', createdAt: '', updatedAt: '' },
+        { id: '6', name: 'Coding', slug: 'coding', color: 'bg-indigo-500', createdAt: '', updatedAt: '' },
+        { id: '7', name: 'Hacking', slug: 'hacking', color: 'bg-orange-500', createdAt: '', updatedAt: '' },
+        { id: '8', name: 'Tutorials', slug: 'tutorials', color: 'bg-teal-500', createdAt: '', updatedAt: '' },
+        { id: '9', name: 'Uncategorized', slug: 'uncategorized', color: 'bg-gray-500', createdAt: '', updatedAt: '' }
+      ];
+      
       try {
-        console.log('Fetching categories for blog filter...');
         const cats = await firebaseBlogService.getCategories();
-        console.log('Fetched categories:', cats);
+        console.log('Fetched categories from Firebase:', cats);
         
-        // Add "All" category at the beginning
-        const allCategories = [
-          { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
-          ...cats
-        ];
-        
-        console.log('Categories with All:', allCategories);
-        return allCategories;
+        if (cats && cats.length > 0) {
+          // Add "All" category at the beginning of Firebase categories
+          return [
+            { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
+            ...cats
+          ];
+        } else {
+          console.log('No categories from Firebase, using fallback');
+          return fallbackCategories;
+        }
       } catch (error) {
         console.error('Error fetching categories, using fallback:', error);
-        // Fallback categories with all the default ones
-        return [
-          { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
-          { id: '1', name: 'Web Development', slug: 'web-development', color: 'bg-blue-500', createdAt: '', updatedAt: '' },
-          { id: '2', name: 'React', slug: 'react', color: 'bg-green-500', createdAt: '', updatedAt: '' },
-          { id: '3', name: 'Databases', slug: 'databases', color: 'bg-red-500', createdAt: '', updatedAt: '' },
-          { id: '4', name: 'Tools', slug: 'tools', color: 'bg-purple-500', createdAt: '', updatedAt: '' },
-          { id: '5', name: 'Coffee Thoughts', slug: 'coffee-thoughts', color: 'bg-coffee', createdAt: '', updatedAt: '' },
-          { id: '6', name: 'Coding', slug: 'coding', color: 'bg-indigo-500', createdAt: '', updatedAt: '' },
-          { id: '7', name: 'Hacking', slug: 'hacking', color: 'bg-orange-500', createdAt: '', updatedAt: '' },
-          { id: '8', name: 'Tutorials', slug: 'tutorials', color: 'bg-teal-500', createdAt: '', updatedAt: '' },
-          { id: '9', name: 'Uncategorized', slug: 'uncategorized', color: 'bg-gray-500', createdAt: '', updatedAt: '' }
-        ];
+        return fallbackCategories;
       }
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    cacheTime: 10 * 60 * 1000 // Keep in cache for 10 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (renamed from cacheTime)
+    retry: false, // Don't retry on failure, use fallback immediately
+    refetchOnWindowFocus: false // Don't refetch when window gains focus
   });
 
   // Fetch blog posts from Firebase
   const { data: blogPosts, isLoading, error } = useQuery({
     queryKey: ['blog-posts'],
     queryFn: async () => {
+      console.log('Fetching blog posts from Firebase');
+      
       try {
-        console.log('Fetching blog posts from Firebase');
         const posts = await firebaseBlogService.getPublishedPosts();
         console.log('Fetched blog posts:', posts);
         
@@ -174,7 +184,11 @@ const Blog: React.FC = () => {
         // Fallback to mock data if Firebase fails
         return mockBlogPosts;
       }
-    }
+    },
+    retry: false, // Don't retry on failure, use fallback immediately
+    refetchOnWindowFocus: false, // Don't refetch when window gains focus
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000 // Keep in cache for 10 minutes (renamed from cacheTime)
   });
 
   // Set tag filter from URL params on load
@@ -239,6 +253,18 @@ const Blog: React.FC = () => {
   // Get featured posts
   const featuredPosts = (blogPosts || []).filter(post => post.featured);
 
+  // Calculate pagination
+  const totalPosts = filteredPosts.length;
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedSort, selectedFilter, searchQuery]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -302,22 +328,25 @@ const Blog: React.FC = () => {
                   </button>
                 </form>
               </motion.div>
-              
-              <motion.div variants={itemVariants}>
-                <div style={{ position: 'relative', zIndex: 99999 }}>
-                  <FilterDropdown
-                    categories={categories || []}
-                    selectedCategory={selectedCategory}
-                    selectedSort={selectedSort}
-                    selectedFilter={selectedFilter}
-                    onCategoryChange={setSelectedCategory}
-                    onSortChange={setSelectedSort}
-                    onFilterChange={setSelectedFilter}
-                  />
-                </div>
-              </motion.div>
             </div>
           </motion.section>
+        )}
+
+        {/* Filter Section - Separate from hero, only on home page */}
+        {!categoryParam && !tagParam && !searchQuery && (
+          <section className="py-4 relative z-50">
+            <div className="container mx-auto px-4">
+              <FilterDropdown
+                categories={categories || []}
+                selectedCategory={selectedCategory}
+                selectedSort={selectedSort}
+                selectedFilter={selectedFilter}
+                onCategoryChange={setSelectedCategory}
+                onSortChange={setSelectedSort}
+                onFilterChange={setSelectedFilter}
+              />
+            </div>
+          </section>
         )}
         
         {/* Category filter for non-home pages */}
@@ -420,7 +449,11 @@ const Blog: React.FC = () => {
                   }
                 </p>
                 <button 
-                  onClick={() => { setSelectedCategory('all'); setSearchQuery(''); }}
+                  onClick={() => { 
+                    setSelectedCategory('all'); 
+                    setSearchQuery(''); 
+                    setCurrentPage(1);
+                  }}
                   className="lofi-button"
                 >
                   View All Posts
@@ -433,7 +466,7 @@ const Blog: React.FC = () => {
                 initial="hidden"
                 animate="visible"
               >
-                {filteredPosts.map(post => (
+                {currentPosts.map(post => (
                   <motion.div 
                     key={post.id}
                     variants={itemVariants}
@@ -481,25 +514,53 @@ const Blog: React.FC = () => {
               </motion.div>
             )}
             
-            {/* Pagination (to be implemented later) */}
-            {filteredPosts.length > 0 && (
+            {/* Dynamic Pagination - Only show if more than 9 posts */}
+            {totalPages > 1 && (
               <div className="mt-8 flex justify-center">
                 <div className="inline-flex rounded-md shadow-sm" role="group">
                   <button 
-                    className="lofi-button-secondary rounded-r-none border-r-0 px-3 py-1.5 text-sm"
-                    disabled
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1.5 text-sm rounded-l-lg border ${
+                      currentPage === 1 
+                        ? 'bg-slate-600 text-slate-400 cursor-not-allowed border-slate-600' 
+                        : 'bg-slate-700 text-white hover:bg-slate-600 border-slate-600'
+                    }`}
                   >
                     Previous
                   </button>
-                  <button className="bg-primary text-white font-medium py-1.5 px-3 text-sm">
-                    1
-                  </button>
-                  <button className="lofi-button-secondary py-1.5 px-3 text-sm border-l-0 border-r-0">
-                    2
-                  </button>
-                  <button className="lofi-button-secondary py-1.5 px-3 text-sm border-l-0 rounded-l-none">
+                  
+                  {/* Page Numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-3 py-1.5 text-sm border-t border-b ${
+                        currentPage === pageNum
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-slate-700 text-white hover:bg-slate-600 border-slate-600'
+                      } ${pageNum === 1 ? '' : 'border-l-0'}`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                  
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1.5 text-sm rounded-r-lg border border-l-0 ${
+                      currentPage === totalPages 
+                        ? 'bg-slate-600 text-slate-400 cursor-not-allowed border-slate-600' 
+                        : 'bg-slate-700 text-white hover:bg-slate-600 border-slate-600'
+                    }`}
+                  >
                     Next
                   </button>
+                </div>
+                
+                {/* Page info */}
+                <div className="ml-4 flex items-center text-sm text-slate-400">
+                  Showing {startIndex + 1}-{Math.min(endIndex, totalPosts)} of {totalPosts} posts
                 </div>
               </div>
             )}

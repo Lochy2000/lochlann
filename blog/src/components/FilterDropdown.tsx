@@ -46,27 +46,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
     { value: 'coffee-thoughts', label: 'Coffee Thoughts' }
   ];
 
-  const dropdownVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: -10, 
-      scale: 0.95,
-      transition: { duration: 0.15 }
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      scale: 1,
-      transition: { duration: 0.2, ease: "easeOut" }
-    },
-    exit: { 
-      opacity: 0, 
-      y: -10, 
-      scale: 0.95,
-      transition: { duration: 0.15 }
-    }
-  };
-
   const getCurrentCategoryName = () => {
     const category = categories.find(cat => cat.slug === selectedCategory);
     return category ? category.name : 'All Categories';
@@ -77,10 +56,8 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
     return sort ? sort.label : 'Newest First';
   };
 
-  const getCurrentFilterName = () => {
-    const filter = filterOptions.find(opt => opt.value === selectedFilter);
-    return filter ? filter.label : 'All Posts';
-  };
+  // Debug
+  console.log('Categories in FilterDropdown:', categories);
 
   return (
     <div className="blog-filter-dropdown flex flex-wrap gap-4 items-center justify-center mb-8 relative z-50">
@@ -104,25 +81,18 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           />
         </button>
 
-        <AnimatePresence>
-          {categoryDropdownOpen && (
-            <motion.div
-              variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="dropdown-menu fixed top-auto left-auto mt-2 w-64 bg-slate-800/95 backdrop-blur-sm border border-purple-500/30 rounded-lg shadow-neon-lg z-[99999] overflow-hidden"
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: '0',
-                zIndex: 99999,
-                transform: 'translateZ(0)',
-                backfaceVisibility: 'hidden'
-              }}
-            >
-              <div className="max-h-80 overflow-y-auto">
-                {categories.map((category) => (
+        {categoryDropdownOpen && (
+          <div
+            className="dropdown-menu absolute mt-2 w-64 bg-slate-800/95 backdrop-blur-sm border border-purple-500/30 rounded-lg shadow-lg overflow-hidden"
+            style={{
+              top: '100%',
+              left: '0',
+              zIndex: 999999
+            }}
+          >
+            <div className="max-h-80 overflow-y-auto">
+              {categories && categories.length > 0 ? (
+                categories.map((category) => (
                   <button
                     key={category.slug}
                     onClick={() => {
@@ -135,16 +105,16 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
                         : 'text-slate-300'
                     }`}
                   >
-                    <div 
-                      className={`w-3 h-3 rounded-full ${category.color}`}
-                    />
+                    <div className={`w-3 h-3 rounded-full ${category.color}`} />
                     <span className="font-medium">{category.name}</span>
                   </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-slate-400">No categories available</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sort Dropdown */}
@@ -167,79 +137,67 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           />
         </button>
 
-        <AnimatePresence>
-          {filterDropdownOpen && (
-            <motion.div
-              variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="dropdown-menu fixed top-auto left-auto mt-2 w-56 bg-slate-800/95 backdrop-blur-sm border border-blue-500/30 rounded-lg shadow-neon-lg z-[99999] overflow-hidden"
-              style={{
-                position: 'absolute',
-                top: '100%',
-                left: '0',
-                zIndex: 99999,
-                transform: 'translateZ(0)',
-                backfaceVisibility: 'hidden'
-              }}
-            >
-              <div className="py-2">
-                <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-600/50">
-                  Sort By
-                </div>
-                {sortOptions.map((option) => {
-                  const IconComponent = option.icon;
-                  return (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        onSortChange(option.value);
-                        setFilterDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 hover:bg-slate-700/70 transition-colors duration-150 flex items-center gap-3 ${
-                        selectedSort === option.value 
-                          ? 'bg-blue-600/30 text-blue-300' 
-                          : 'text-slate-300'
-                      }`}
-                    >
-                      <IconComponent className="text-blue-400" />
-                      <span>{option.label}</span>
-                    </button>
-                  );
-                })}
-                
-                <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-t border-slate-600/50 mt-2">
-                  Filter By
-                </div>
-                {filterOptions.map((option) => (
+        {filterDropdownOpen && (
+          <div
+            className="dropdown-menu absolute mt-2 w-56 bg-slate-800/95 backdrop-blur-sm border border-blue-500/30 rounded-lg shadow-lg overflow-hidden"
+            style={{
+              top: '100%',
+              left: '0',
+              zIndex: 999999
+            }}
+          >
+            <div className="py-2">
+              <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-600/50">
+                Sort By
+              </div>
+              {sortOptions.map((option) => {
+                const IconComponent = option.icon;
+                return (
                   <button
                     key={option.value}
                     onClick={() => {
-                      onFilterChange(option.value);
+                      onSortChange(option.value);
                       setFilterDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-2 hover:bg-slate-700/70 transition-colors duration-150 ${
-                      selectedFilter === option.value 
+                    className={`w-full text-left px-4 py-2 hover:bg-slate-700/70 transition-colors duration-150 flex items-center gap-3 ${
+                      selectedSort === option.value 
                         ? 'bg-blue-600/30 text-blue-300' 
                         : 'text-slate-300'
                     }`}
                   >
-                    {option.label}
+                    <IconComponent className="text-blue-400" />
+                    <span>{option.label}</span>
                   </button>
-                ))}
+                );
+              })}
+              
+              <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-t border-slate-600/50 mt-2">
+                Filter By
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              {filterOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onFilterChange(option.value);
+                    setFilterDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2 hover:bg-slate-700/70 transition-colors duration-150 ${
+                    selectedFilter === option.value 
+                      ? 'bg-blue-600/30 text-blue-300' 
+                      : 'text-slate-300'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Clear Filters Button */}
       {(selectedCategory !== 'all' || selectedSort !== 'newest' || selectedFilter !== 'all') && (
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
+        <button
           onClick={() => {
             onCategoryChange('all');
             onSortChange('newest');
@@ -248,7 +206,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
           className="px-3 py-2 text-sm bg-red-600/80 text-white border border-red-500/30 rounded-lg hover:bg-red-500/90 transition-all duration-200"
         >
           Clear Filters
-        </motion.button>
+        </button>
       )}
     </div>
   );

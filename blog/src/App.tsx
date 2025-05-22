@@ -21,37 +21,8 @@ const App: React.FC = () => {
   // For debugging
   console.log('Blog App rendered');
   
-  // Debug environment variables
-  console.log('Environment Variables Check:', {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✓ Set' : '✗ Missing',
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✓ Set' : '✗ Missing',
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✓ Set' : '✗ Missing',
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✓ Set' : '✗ Missing',
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✓ Set' : '✗ Missing',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✓ Set' : '✗ Missing',
-  });
-  
-  // Parse hash for direct access
-  const hashPath = window.location.hash ? window.location.hash.substring(1) : '';
-
-  // Determine if we need a basename
-  // When deployed as part of the main site, we'll use "/blog" 
-  // For local development or standalone deployment, we'll use ""
-  const isLocalDevelopment = window.location.port === "5001" || !window.location.host.includes("lochlann.vercel.app");
-  const basename = "";  // Always use empty basename for standalone deployment
-  
-  console.log('Using basename:', basename);
-  console.log('Hash path (if any):', hashPath);
-  
-  useEffect(() => {
-    // Check if we have a hash-based route
-    if (window.location.hash && window.location.hash.startsWith('#/admin')) {
-      console.log('Detected admin hash route, redirecting...');
-      const adminPath = window.location.hash.substring(1); // Remove the # character
-      window.history.replaceState(null, '', adminPath);
-      window.location.reload();
-    }
-  }, []);
+  // Determine if we need a basename - always use empty for standalone
+  const basename = "";
   
   return (
     <QueryClientProvider client={queryClient}>
