@@ -330,13 +330,15 @@ class FirebaseBlogService {
       const categorySlug = post.category ? 
         this.generateSlug(post.category) : 'uncategorized';
       
-      // Ensure tags is properly formatted
-      let formattedTags = post.tags || [];
-      if (typeof formattedTags === 'string') {
-        formattedTags = formattedTags.split(',').map(tag => tag.trim()).filter(Boolean);
+      // Ensure tags is properly formatted and never undefined
+      let formattedTags: string[] = [];
+      if (Array.isArray(post.tags)) {
+        formattedTags = post.tags.filter(tag => tag && tag.trim().length > 0);
+      } else if (typeof post.tags === 'string') {
+        formattedTags = post.tags.split(',').map(tag => tag.trim()).filter(Boolean);
       }
       
-      // Create a complete post with all required fields
+      // Create a complete post with all required fields - no undefined values
       const newPost = {
         title: post.title || 'Untitled',
         slug: slug,
@@ -349,14 +351,21 @@ class FirebaseBlogService {
         categorySlug: categorySlug,
         categoryColor: post.categoryColor || 'bg-blue-500',
         readTime: post.readTime || '5 min read',
-        tags: formattedTags,
-        published: post.published !== undefined ? post.published : true,
-        featured: post.featured !== undefined ? post.featured : false,
+        tags: formattedTags, // Always an array, never undefined
+        published: post.published !== undefined ? Boolean(post.published) : true,
+        featured: post.featured !== undefined ? Boolean(post.featured) : false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         author: post.author || defaultAuthor,
         relatedPosts: post.relatedPosts || []
       };
+      
+      // Validate that no field is undefined before creating
+      const hasUndefinedValues = Object.values(newPost).some(value => value === undefined);
+      if (hasUndefinedValues) {
+        console.error('New post data contains undefined values:', newPost);
+        throw new Error('Cannot create document with undefined values');
+      }
       
       console.log('Creating post with complete data:', newPost);
       
@@ -407,28 +416,52 @@ class FirebaseBlogService {
       // Current document data
       const currentData = docSnap.data();
       
-      // Process the update data
-      const updateData: Record<string, any> = { ...updatedPost };
+      // Process the update data and remove undefined values
+      const updateData: Record<string, any> = {};
       
-      // Remove the ID field if present
-      if ('id' in updateData) {
-        delete updateData.id;
-      }
+      // Only include fields that are not undefined
+      Object.entries(updatedPost).forEach(([key, value]) => {
+        if (value !== undefined && key !== 'id') {
+          updateData[key] = value;
+        }
+      });
       
       // Update categorySlug if category is being updated
       if (updatedPost.category && updatedPost.category !== currentData.category) {
         updateData.categorySlug = this.generateSlug(updatedPost.category);
       }
       
-      // Format tags if provided as string
-      if (updatedPost.tags && typeof updatedPost.tags === 'string') {
-        updateData.tags = updatedPost.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+      // Ensure tags is always an array, never undefined
+      if ('tags' in updatedPost) {
+        if (Array.isArray(updatedPost.tags)) {
+          updateData.tags = updatedPost.tags.filter(tag => tag && tag.trim().length > 0);
+        } else if (typeof updatedPost.tags === 'string') {
+          updateData.tags = updatedPost.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+        } else if (updatedPost.tags === null || updatedPost.tags === undefined) {
+          updateData.tags = []; // Set to empty array instead of undefined
+        }
+      }
+      
+      // Ensure other fields have proper defaults
+      if ('published' in updatedPost && updateData.published === undefined) {
+        updateData.published = true;
+      }
+      
+      if ('featured' in updatedPost && updateData.featured === undefined) {
+        updateData.featured = false;
       }
       
       // Always update the timestamp
       updateData.updatedAt = new Date().toISOString();
       
       console.log('Applying updates:', updateData);
+      
+      // Validate that no field is undefined before updating
+      const hasUndefinedValues = Object.values(updateData).some(value => value === undefined);
+      if (hasUndefinedValues) {
+        console.error('Update data contains undefined values:', updateData);
+        throw new Error('Cannot update document with undefined values');
+      }
       
       // Update the document
       await updateDoc(docRef, updateData);

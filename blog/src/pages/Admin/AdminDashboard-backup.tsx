@@ -20,60 +20,6 @@ const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Helper function to clean post data and ensure all fields are properly formatted
-  const cleanPostData = (post: Partial<BlogPost>) => {
-    // Parse tags: handle string, array, or empty cases
-    let parsedTags: string[] = [];
-    if (post.tags) {
-      if (typeof post.tags === 'string') {
-        parsedTags = post.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-      } else if (Array.isArray(post.tags)) {
-        parsedTags = post.tags.filter(tag => tag && tag.trim().length > 0);
-      }
-    }
-
-    // Clean up excerpt if it has HTML
-    let cleanExcerpt = post.excerpt || '';
-    if (cleanExcerpt.includes('<')) {
-      cleanExcerpt = cleanExcerpt.replace(/<[^>]*>?/gm, '');
-    }
-
-    // If no excerpt is provided, generate one from the content
-    if (!cleanExcerpt && post.content) {
-      cleanExcerpt = post.content.replace(/<[^>]*>?/gm, '');
-      cleanExcerpt = cleanExcerpt.substring(0, 150) + (cleanExcerpt.length > 150 ? '...' : '');
-    }
-
-    // Generate slug if not provided
-    const slug = post.slug || (post.title ? 
-      post.title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-') : 
-      'untitled-post');
-
-    // Return clean data with all required fields
-    const cleanData = {
-      title: post.title || '',
-      content: post.content || '',
-      slug: slug,
-      excerpt: cleanExcerpt,
-      image: post.image || '',
-      coverImage: post.coverImage || post.image || '',
-      category: post.category || 'Uncategorized',
-      categoryColor: post.categoryColor || 'bg-blue-500',
-      date: post.date || new Date().toISOString().split('T')[0],
-      readTime: post.readTime || '5 min read',
-      tags: parsedTags, // Always an array, never undefined
-      published: post.published !== undefined ? post.published : true,
-      featured: post.featured !== undefined ? post.featured : false,
-    };
-
-    // Only include ID if updating (not creating)
-    if (post.id) {
-      return { ...cleanData, id: post.id };
-    }
-
-    return cleanData;
-  };
-
   // Firebase login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,25 +75,24 @@ const AdminDashboard: React.FC = () => {
     mutationFn: async (post: Partial<BlogPost>) => {
       try {
         console.log('Creating blog post:', post);
-        const cleanedPost = cleanPostData(post);
-        console.log('Cleaned post data:', cleanedPost);
-        
-        const result = await firebaseBlogService.createBlogPost(cleanedPost);
+        const result = await firebaseBlogService.createBlogPost(post);
         console.log('Blog post created:', result);
         return result;
       } catch (error) {
         console.error('Error in creation mutation:', error);
-        throw error;
+        throw error; // Re-throw the error to be caught by onError
       }
     },
     onSuccess: () => {
+      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
-      queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['blog-posts'] }); // Also invalidate the public posts query
       setShowCreateForm(false);
       setCurrentPost(null);
       alert('Blog post created successfully!');
     },
-    onError: (error: any) => {
+    onError: (error) => {
+      // Show a more specific error message
       console.error('Mutation error:', error);
       alert(`Error: ${error.message || 'Failed to create blog post. Please try again later.'}`);
     }
@@ -163,11 +108,28 @@ const AdminDashboard: React.FC = () => {
       console.log('Updating blog post:', post);
       
       // Clean up the data before sending to Firebase
-      const cleanedPost = cleanPostData(post);
-      console.log('Cleaned update data:', cleanedPost);
+      const cleanPost = { ...post };
+      
+      // Process tags if needed
+      if (typeof cleanPost.tags === 'string') {
+        cleanPost.tags = cleanPost.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      }
+      
+      // Ensure dates are in the right format
+      if (!cleanPost.date) {
+        cleanPost.date = new Date().toISOString().split('T')[0];
+      }
+      
+      // Ensure the post has a slug
+      if (!cleanPost.slug && cleanPost.title) {
+        cleanPost.slug = cleanPost.title
+          .toLowerCase()
+          .replace(/[^\w\s]/gi, '')
+          .replace(/\s+/g, '-');
+      }
       
       try {
-        const result = await firebaseBlogService.updateBlogPost(post.id.toString(), cleanedPost);
+        const result = await firebaseBlogService.updateBlogPost(post.id.toString(), cleanPost);
         
         if (!result) {
           throw new Error('Failed to update blog post - no result returned');
@@ -187,12 +149,13 @@ const AdminDashboard: React.FC = () => {
           console.error(`Error message: ${error.message}`);
         }
         
-        throw error;
+        throw error; // Re-throw to be caught by onError
       }
     },
     onSuccess: () => {
+      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
-      queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['blog-posts'] }); // Also invalidate the public posts query
       setShowCreateForm(false);
       setCurrentPost(null);
       alert('Blog post updated successfully!');
@@ -200,6 +163,7 @@ const AdminDashboard: React.FC = () => {
     onError: (error: any) => {
       console.error('Update mutation error:', error);
       
+      // More user-friendly error message
       let errorMessage = 'Failed to update blog post.';
       
       if (error.code === 'permission-denied') {
@@ -226,11 +190,12 @@ const AdminDashboard: React.FC = () => {
       return { success };
     },
     onSuccess: () => {
+      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['admin-blog-posts'] });
-      queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['blog-posts'] }); // Also invalidate the public posts query
       alert('Blog post deleted successfully!');
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Delete mutation error:', error);
       alert(`Error: ${error.message || 'Failed to delete blog post. Please try again later.'}`);
     }
@@ -245,14 +210,52 @@ const AdminDashboard: React.FC = () => {
       return;
     }
     
-    console.log('Submitting post data:', currentPost);
+    // Parse tags as array if provided as string
+    let parsedTags = currentPost.tags;
+    if (typeof currentPost.tags === 'string') {
+      parsedTags = (currentPost.tags as string).split(',').map(tag => tag.trim());
+    }
+    
+    // Clean up excerpt if it has HTML
+    let cleanExcerpt = currentPost.excerpt || '';
+    if (cleanExcerpt.includes('<')) {
+      // Strip HTML tags for excerpt
+      cleanExcerpt = cleanExcerpt.replace(/<[^>]*>?/gm, '');
+    }
+    
+    // If no excerpt is provided, generate one from the content
+    if (!cleanExcerpt && currentPost.content) {
+      // Strip HTML tags and get first 150 characters
+      cleanExcerpt = currentPost.content.replace(/<[^>]*>?/gm, '');
+      cleanExcerpt = cleanExcerpt.substring(0, 150) + (cleanExcerpt.length > 150 ? '...' : '');
+    }
+    
+    // Set default values and ensure all required fields are present
+    const postData = {
+      title: currentPost.title,
+      content: currentPost.content,
+      slug: currentPost.slug || '',
+      excerpt: cleanExcerpt,
+      image: currentPost.image || '',
+      coverImage: currentPost.coverImage || currentPost.image || '',
+      category: currentPost.category || 'Uncategorized',
+      categoryColor: currentPost.categoryColor || 'bg-blue-500',
+      date: currentPost.date || new Date().toISOString().split('T')[0],
+      readTime: currentPost.readTime || '5 min read',
+      tags: parsedTags,
+      published: currentPost.published !== undefined ? currentPost.published : true,
+      featured: currentPost.featured !== undefined ? currentPost.featured : false,
+      id: currentPost.id // Include ID for updates
+    };
+    
+    console.log('Submitting post data:', postData);
     
     if (currentPost.id) {
       // Update existing post
-      updatePostMutation.mutate(currentPost);
+      updatePostMutation.mutate(postData);
     } else {
       // Create new post
-      createPostMutation.mutate(currentPost);
+      createPostMutation.mutate(postData);
     }
   };
   
@@ -263,16 +266,9 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  // Handle form field changes with proper validation
-  const handleFieldChange = (field: keyof BlogPost, value: any) => {
-    setCurrentPost(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
   // If not authenticated, show login form
   if (!isAuthenticated) {
+    // Redirect to login page instead of showing the form directly
     navigate('/login', { state: { from: { pathname: '/admin' } } });
     return null;
   }
@@ -295,7 +291,7 @@ const AdminDashboard: React.FC = () => {
                 type="text"
                 className="lofi-input w-full"
                 value={currentPost?.title || ''}
-                onChange={(e) => handleFieldChange('title', e.target.value)}
+                onChange={(e) => setCurrentPost({ ...currentPost, title: e.target.value })}
                 required
               />
             </div>
@@ -308,7 +304,7 @@ const AdminDashboard: React.FC = () => {
                 type="text"
                 className="lofi-input w-full"
                 value={currentPost?.slug || ''}
-                onChange={(e) => handleFieldChange('slug', e.target.value)}
+                onChange={(e) => setCurrentPost({ ...currentPost, slug: e.target.value })}
                 placeholder="Leave empty to auto-generate"
               />
             </div>
@@ -322,7 +318,7 @@ const AdminDashboard: React.FC = () => {
               className="lofi-input w-full"
               rows={2}
               value={currentPost?.excerpt || ''}
-              onChange={(e) => handleFieldChange('excerpt', e.target.value)}
+              onChange={(e) => setCurrentPost({ ...currentPost, excerpt: e.target.value })}
               placeholder="A brief summary of your post (plain text only)"
             ></textarea>
           </div>
@@ -339,7 +335,7 @@ const AdminDashboard: React.FC = () => {
             }>
               <RichTextEditor
                 value={currentPost?.content || ''}
-                onChange={(content) => handleFieldChange('content', content)}
+                onChange={(content) => setCurrentPost({ ...currentPost, content })}
               />
             </ErrorBoundary>
           </div>
@@ -352,7 +348,7 @@ const AdminDashboard: React.FC = () => {
               <select
                 className="lofi-input w-full"
                 value={currentPost?.category || ''}
-                onChange={(e) => handleFieldChange('category', e.target.value)}
+                onChange={(e) => setCurrentPost({ ...currentPost, category: e.target.value })}
               >
                 <option value="">Select Category</option>
                 <option value="Web Development">Web Development</option>
@@ -371,7 +367,7 @@ const AdminDashboard: React.FC = () => {
               <select
                 className="lofi-input w-full"
                 value={currentPost?.categoryColor || ''}
-                onChange={(e) => handleFieldChange('categoryColor', e.target.value)}
+                onChange={(e) => setCurrentPost({ ...currentPost, categoryColor: e.target.value })}
               >
                 <option value="">Select Color</option>
                 <option value="bg-blue-500">Blue</option>
@@ -391,7 +387,7 @@ const AdminDashboard: React.FC = () => {
                 type="date"
                 className="lofi-input w-full"
                 value={currentPost?.date || new Date().toISOString().split('T')[0]}
-                onChange={(e) => handleFieldChange('date', e.target.value)}
+                onChange={(e) => setCurrentPost({ ...currentPost, date: e.target.value })}
               />
             </div>
             
@@ -403,7 +399,7 @@ const AdminDashboard: React.FC = () => {
                 type="text"
                 className="lofi-input w-full"
                 value={currentPost?.readTime || ''}
-                onChange={(e) => handleFieldChange('readTime', e.target.value)}
+                onChange={(e) => setCurrentPost({ ...currentPost, readTime: e.target.value })}
                 placeholder="e.g. 5 min read"
               />
             </div>
@@ -412,10 +408,7 @@ const AdminDashboard: React.FC = () => {
               <ImageUploader
                 label="Featured Image URL"
                 currentUrl={currentPost?.image || ''}
-                onImageUrl={(url) => {
-                  handleFieldChange('image', url);
-                  handleFieldChange('coverImage', url);
-                }}
+                onImageUrl={(url) => setCurrentPost({ ...currentPost, image: url, coverImage: url })}
               />
             </div>
             
@@ -426,14 +419,8 @@ const AdminDashboard: React.FC = () => {
               <input
                 type="text"
                 className="lofi-input w-full"
-                value={
-                  typeof currentPost?.tags === 'string' 
-                    ? currentPost.tags 
-                    : Array.isArray(currentPost?.tags) 
-                      ? currentPost.tags.join(', ') 
-                      : ''
-                }
-                onChange={(e) => handleFieldChange('tags', e.target.value)}
+                value={typeof currentPost?.tags === 'string' ? currentPost?.tags : (Array.isArray(currentPost?.tags) ? currentPost?.tags.join(', ') : '')}
+                onChange={(e) => setCurrentPost({ ...currentPost, tags: e.target.value })}
                 placeholder="Enter tags separated by commas"
               />
             </div>
@@ -445,7 +432,7 @@ const AdminDashboard: React.FC = () => {
                 type="checkbox"
                 className="mr-2 w-4 h-4"
                 checked={currentPost?.published || false}
-                onChange={(e) => handleFieldChange('published', e.target.checked)}
+                onChange={(e) => setCurrentPost({ ...currentPost, published: e.target.checked })}
               />
               Published
             </label>
@@ -455,7 +442,7 @@ const AdminDashboard: React.FC = () => {
                 type="checkbox"
                 className="mr-2 w-4 h-4"
                 checked={currentPost?.featured || false}
-                onChange={(e) => handleFieldChange('featured', e.target.checked)}
+                onChange={(e) => setCurrentPost({ ...currentPost, featured: e.target.checked })}
               />
               Featured
             </label>
@@ -511,21 +498,7 @@ const AdminDashboard: React.FC = () => {
                 <button
                   className="lofi-button"
                   onClick={() => {
-                    setCurrentPost({
-                      // Initialize with default values to prevent undefined errors
-                      title: '',
-                      content: '',
-                      excerpt: '',
-                      slug: '',
-                      image: '',
-                      category: 'Coffee Thoughts',
-                      categoryColor: 'bg-blue-500',
-                      date: new Date().toISOString().split('T')[0],
-                      readTime: '5 min read',
-                      tags: [], // Always initialize as empty array
-                      published: true,
-                      featured: false
-                    });
+                    setCurrentPost({});
                     setShowCreateForm(true);
                   }}
                 >
@@ -627,14 +600,7 @@ const AdminDashboard: React.FC = () => {
                           <button
                             className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                             onClick={() => {
-                              // Ensure tags is always an array when editing
-                              const postToEdit = {
-                                ...post,
-                                tags: Array.isArray(post.tags) ? post.tags : 
-                                      typeof post.tags === 'string' ? post.tags.split(',').map(t => t.trim()) : 
-                                      []
-                              };
-                              setCurrentPost(postToEdit);
+                              setCurrentPost(post);
                               setShowCreateForm(true);
                             }}
                             title="Edit Post"
