@@ -314,7 +314,7 @@ const ShaderGradientHero = () => {
   }, []); // No dependencies to ensure animation continues no matter what
   
   return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
+    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden hero-mobile-adjustments">
       {/* Custom WebGL Gradient Background */}
       <div className="absolute inset-0 z-0">
         <canvas 
@@ -325,22 +325,22 @@ const ShaderGradientHero = () => {
       
       {/* Content */}
       <div className="container mx-auto px-4 z-10">
-        <div className="flex flex-col md:flex-row items-center">
+        <div className="flex flex-col md:flex-row items-center gap-8">
           <motion.div 
-            className="md:w-1/2 mb-10 md:mb-0"
+            className="w-full md:w-1/2 mb-10 md:mb-0"
             initial="initial"
             animate="animate"
             variants={fadeIn}
           >
             <motion.p 
-              className="text-primary-light font-mono mb-3 text-white"
+              className="text-primary-light font-mono mb-3 text-white text-sm md:text-base"
               variants={slideUp}
             >
               Hello, I'm
             </motion.p>
             
             <motion.h1 
-              className="text-4xl md:text-6xl font-space font-bold mb-4 text-white"
+              className="text-3xl sm:text-4xl md:text-6xl font-space font-bold mb-4 text-white hero-title-mobile"
               variants={slideUp}
             >
               Lochlann O'Higgins
@@ -355,12 +355,12 @@ const ShaderGradientHero = () => {
                   'UI/UX Enthusiast',
                   'Full Stack Developer in Training'
                 ]}
-                className="text-xl md:text-2xl font-space text-white/80"
+                className="text-lg sm:text-xl md:text-2xl font-space text-white/80 hero-subtitle-mobile"
               />
             </div>
             
             <motion.p 
-              className="text-white/80 mb-8 max-w-lg"
+              className="text-white/80 mb-8 max-w-lg text-sm sm:text-base text-content-mobile"
               variants={slideUp}
             >
               I design and build websites that tell stories. With experience in WordPress development
@@ -368,40 +368,40 @@ const ShaderGradientHero = () => {
             </motion.p>
             
             <motion.div 
-              className="flex flex-wrap gap-4"
+              className="flex flex-col sm:flex-row gap-4 hero-buttons-mobile"
               variants={slideUp}
             >
-              <Link to="/portfolio" className="px-6 py-3 rounded-full backdrop-blur-sm bg-white/10 hover:bg-white/20 text-white font-medium shadow-lg transition-all border border-white/20">
+              <Link to="/portfolio" className="px-6 py-3 rounded-full backdrop-blur-sm bg-white/10 hover:bg-white/20 text-white font-medium shadow-lg transition-all border border-white/20 text-center">
                 View My Work
               </Link>
-              <Link to="/about" className="px-6 py-3 rounded-full backdrop-blur-sm border border-white/30 text-white font-medium hover:bg-white/10 transition-all">
+              <Link to="/about" className="px-6 py-3 rounded-full backdrop-blur-sm border border-white/30 text-white font-medium hover:bg-white/10 transition-all text-center">
                 About Me
               </Link>
             </motion.div>
           </motion.div>
           
           <motion.div 
-            className="md:w-1/2 flex justify-center"
+            className="w-full md:w-1/2 flex justify-center"
             initial="initial"
             animate="animate"
             variants={fadeIn}
             custom={0.5}
           >
-            <div className="relative w-64 h-64 md:w-96 md:h-96">
+            <div className="relative">
               <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-md blur-2xl"></div>
               <img 
                 src="https://res.cloudinary.com/dpw2txejq/image/upload/v1747907892/lochybg_llmsfp.png"
                 alt="Lochlann O'Higgins" 
-                className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full border-4 border-white/20 shadow-xl z-10 relative"
+                className="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 object-cover rounded-full border-4 border-white/20 shadow-xl z-10 relative hero-profile-mobile"
               />
               <motion.div 
-                className="absolute -bottom-4 -right-4 backdrop-blur-sm bg-white/10 p-3 rounded-xl shadow-lg border border-white/20"
+                className="absolute -bottom-2 -right-2 sm:-bottom-4 sm:-right-4 backdrop-blur-sm bg-white/10 p-2 sm:p-3 rounded-xl shadow-lg border border-white/20 z-20"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
               >
-                <span className="text-white font-mono font-bold">Junior</span>
-                <span className="block text-white/80 text-sm">Web Developer</span>
+                <span className="text-white font-mono font-bold text-sm sm:text-base">Junior</span>
+                <span className="block text-white/80 text-xs sm:text-sm">Web Developer</span>
               </motion.div>
             </div>
           </motion.div>

@@ -1,7 +1,6 @@
 // Firebase configuration for the blog
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, query, where, orderBy, setDoc } from "firebase/firestore";
-import { enableIndexedDbPersistence, CACHE_SIZE_UNLIMITED } from "firebase/firestore";
 
 // Firebase configuration 
 const firebaseConfig = {
@@ -35,27 +34,8 @@ if (getApps().length === 0) {
 
 const db = getFirestore(app);
 
-// Enable offline persistence - but wrapped in a try/catch and only done once
-try {
-  console.log('Setting up Firestore persistence');
-  
-  // Enable persistence explicitly with a safer approach
-  try {
-    enableIndexedDbPersistence(db).catch((err) => {
-      if (err.code === 'failed-precondition') {
-        console.warn('Firebase persistence failed: Multiple tabs open');
-      } else if (err.code === 'unimplemented') {
-        console.warn('Firebase persistence not supported in this browser');
-      } else {
-        console.warn('Firebase persistence failed:', err);
-      }
-    });
-  } catch (err) {
-    console.warn('Could not enable persistence:', err);
-  }
-} catch (error) {
-  console.error('Could not enable offline persistence:', error);
-}
+// Note: Skipping offline persistence setup to avoid browser storage issues in development
+console.log('Firestore initialized without persistence for better compatibility');
 
 // Blog Post type definition
 export interface BlogPost {
@@ -151,54 +131,79 @@ class FirebaseBlogService {
   private collectionName = 'blog_posts';
   private categoriesCollectionName = 'categories';
   private initialized = false;
+  private initializing = false;
   
   // Initialize the database with sample data if empty
   async initialize() {
-    if (this.initialized) return;
+    // Prevent multiple simultaneous initializations
+    if (this.initialized || this.initializing) {
+      console.log('Firebase already initialized or initializing, skipping...');
+      return;
+    }
+    
+    this.initializing = true;
+    console.log('Initializing Firebase Blog Service...');
     
     try {
-      // Initialize categories first
-      await this.initializeDefaultCategories();
+      // Simple initialization - just check if we can connect
+      console.log('Testing Firebase connection...');
       
-      console.log('Checking for existing blog posts...');
-      const querySnapshot = await getDocs(collection(db, this.collectionName));
+      // Try a simple read operation to test connectivity
+      const testQuery = await getDocs(collection(db, this.collectionName));
+      console.log(`Firebase connection successful. Found ${testQuery.size} existing posts`);
       
-      // If no posts exist, add sample posts
-      if (querySnapshot.empty) {
-        console.log('No blog posts found. Adding sample data...');
-        
-        // Add sample posts one by one with proper error handling
-        for (const post of sampleBlogPosts) {
-          try {
-            // Ensure tags is an array
-            const tags = Array.isArray(post.tags) ? post.tags : 
-                         (typeof post.tags === 'string' ? [post.tags].filter(Boolean) : []);
-            
-            // Format the post data correctly
-            const formattedPost = {
-              ...post,
-              tags: tags,
-              author: post.author || defaultAuthor,
-              published: post.published === undefined ? true : post.published,
-              featured: post.featured === undefined ? false : post.featured,
-              createdAt: post.createdAt || new Date().toISOString(),
-              updatedAt: post.updatedAt || new Date().toISOString()
-            };
-            
-            // Add the document
-            const docRef = await addDoc(collection(db, this.collectionName), formattedPost);
-            console.log(`Sample post "${formattedPost.title}" added with ID: ${docRef.id}`);
-          } catch (error) {
-            console.error('Error adding sample post:', error);
-          }
-        }
+      // Only initialize categories if absolutely none exist
+      const categoriesQuery = await getDocs(collection(db, this.categoriesCollectionName));
+      if (categoriesQuery.empty) {
+        console.log('No categories found. Adding minimal default categories...');
+        await this.initializeMinimalCategories();
       } else {
-        console.log(`Found ${querySnapshot.size} existing blog posts, skipping initialization`);
+        console.log(`Found ${categoriesQuery.size} existing categories`);
       }
       
       this.initialized = true;
+      this.initializing = false;
+      console.log('Firebase Blog Service initialized successfully');
     } catch (error) {
       console.error('Error initializing blog service:', error);
+      this.initializing = false;
+      // Mark as initialized anyway to prevent hanging
+      this.initialized = true;
+      throw error;
+    }
+  }
+
+  // Minimal category initialization - much faster
+  async initializeMinimalCategories(): Promise<void> {
+    try {
+      const minimalCategories = [
+        {
+          name: 'Web Development',
+          slug: 'web-development',
+          color: 'bg-blue-500',
+          description: 'Web development posts',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          name: 'Uncategorized',
+          slug: 'uncategorized',
+          color: 'bg-gray-500',
+          description: 'General posts',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      // Add only essential categories quickly
+      for (const category of minimalCategories) {
+        await addDoc(collection(db, this.categoriesCollectionName), category);
+      }
+      
+      console.log('Minimal categories initialized');
+    } catch (error) {
+      console.error('Error initializing minimal categories:', error);
+      // Don't throw - this shouldn't block the app
     }
   }
   
@@ -687,101 +692,11 @@ class FirebaseBlogService {
     }
   }
 
-  // Initialize default categories
+  // Initialize default categories - simplified version
   async initializeDefaultCategories(): Promise<void> {
-    try {
-      console.log('Checking for existing categories...');
-      const querySnapshot = await getDocs(collection(db, this.categoriesCollectionName));
-      
-      if (querySnapshot.empty) {
-        console.log('No categories found. Adding default categories...');
-        
-        const defaultCategories = [
-          {
-            name: 'Web Development',
-            slug: 'web-development',
-            color: 'bg-blue-500',
-            description: 'Frontend and backend web development tutorials and insights',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'React',
-            slug: 'react',
-            color: 'bg-green-500',
-            description: 'React.js tutorials, hooks, and best practices',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'Databases',
-            slug: 'databases',
-            color: 'bg-red-500',
-            description: 'Database design, optimization, and management',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'Tools',
-            slug: 'tools',
-            color: 'bg-purple-500',
-            description: 'Developer tools, utilities, and productivity tips',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'Coffee Thoughts',
-            slug: 'coffee-thoughts',
-            color: 'bg-coffee',
-            description: 'Random thoughts and musings over a cup of coffee',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'Coding',
-            slug: 'coding',
-            color: 'bg-indigo-500',
-            description: 'General programming concepts and techniques',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'Hacking',
-            slug: 'hacking',
-            color: 'bg-orange-500',
-            description: 'Ethical hacking, cybersecurity, and penetration testing',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'Tutorials',
-            slug: 'tutorials',
-            color: 'bg-teal-500',
-            description: 'Step-by-step tutorials and learning guides',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            name: 'Uncategorized',
-            slug: 'uncategorized',
-            color: 'bg-gray-500',
-            description: 'Posts that don\'t fit into other categories',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        ];
-
-        for (const category of defaultCategories) {
-          await this.createCategory(category);
-        }
-        
-        console.log('Default categories initialized successfully');
-      } else {
-        console.log(`Found ${querySnapshot.size} existing categories, skipping initialization`);
-      }
-    } catch (error) {
-      console.error('Error initializing default categories:', error);
-    }
+    // This method is now replaced by initializeMinimalCategories
+    // Keeping for compatibility but redirecting to simpler version
+    return this.initializeMinimalCategories();
   }
 }
 

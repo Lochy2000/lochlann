@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBlogUrl } from '@/lib/blogUrl';
@@ -12,10 +13,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const blogUrl = getBlogUrl();
 
-  // Close the mobile menu when changing routes
+  // Close the mobile menu when changing routes (but not on initial load)
   useEffect(() => {
-    if (isOpen) onClose();
-  }, [location.pathname, isOpen, onClose]);
+    if (isOpen) {
+      onClose();
+    }
+  }, [location.pathname]);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -55,8 +58,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
     open: { opacity: 1, y: 0 }
   };
 
-  return (
-    <AnimatePresence>
+  return createPortal(
+    <AnimatePresence mode="wait">
       {isOpen && (
         <>
           {/* Backdrop */}
@@ -64,58 +67,231 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              zIndex: 40
+            }}
             onClick={onClose}
           />
           
           {/* Menu */}
           <motion.div
-            className="fixed top-0 right-0 w-4/5 h-full bg-light dark:bg-darker shadow-xl z-50 p-6"
+            style={{
+              position: 'fixed',
+              top: 0,
+              right: 0,
+              width: '80%',
+              maxWidth: '384px',
+              height: '100%',
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              zIndex: 50,
+              padding: '24px'
+            }}
             variants={menuVariants}
             initial="closed"
             animate="open"
             exit="closed"
           >
-            <div className="flex justify-end">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
               <button 
-                className="text-slate-700 dark:text-white"
+                style={{
+                  padding: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                  color: '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                }}
                 onClick={onClose}
                 aria-label="Close menu"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" style={{ width: '24px', height: '24px' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             
-            <motion.div className="flex flex-col space-y-6 mt-12">
+            <motion.div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '24px' }}>
               <motion.div variants={itemVariants}>
-                <Link to="/" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link 
+                  to="/" 
+                  style={{
+                    display: 'block',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
                   Home
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link to="/about" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link 
+                  to="/about" 
+                  style={{
+                    display: 'block',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
                   About
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link to="/experience" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link 
+                  to="/experience" 
+                  style={{
+                    display: 'block',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
                   Experience
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Link to="/portfolio" className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link 
+                  to="/portfolio" 
+                  style={{
+                    display: 'block',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
                   Portfolio
                 </Link>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <a href={blogUrl} className="text-slate-700 dark:text-white text-lg font-medium">
+                <Link 
+                  to="/marine-conservation" 
+                  style={{
+                    display: 'block',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
+                  Marine Conservation
+                </Link>
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <a 
+                  href={blogUrl} 
+                  style={{
+                    display: 'block',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    color: '#374151',
+                    textDecoration: 'none',
+                    fontSize: '18px',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }}
+                >
                   Blog
                 </a>
               </motion.div>
-              <motion.div variants={itemVariants}>
-                <Link to="/contact" className="w-full px-5 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-white font-medium text-center block">
+              <motion.div variants={itemVariants} style={{ paddingTop: '16px' }}>
+                <Link 
+                  to="/contact" 
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '12px 24px',
+                    borderRadius: '50px',
+                    background: 'linear-gradient(to right, #3b82f6, #8b5cf6)',
+                    color: 'white',
+                    textDecoration: 'none',
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    textAlign: 'center',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                    transition: 'box-shadow 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
                   Contact
                 </Link>
               </motion.div>
@@ -123,7 +299,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

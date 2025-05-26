@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
@@ -12,17 +12,91 @@ import LoginPage from './pages/Auth/LoginPage';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import FirebaseDebug from './components/FirebaseDebug';
 import { Helmet } from 'react-helmet';
+import { firebaseBlogService } from './utils/firebaseBlogService';
+import { isMobileDevice, getMobileQueryConfig } from './utils/mobileDetection';
 import './utils/authDomainHelper';
 
-// Create a new query client
-const queryClient = new QueryClient();
+// Create a new query client with mobile-optimized settings
+const mobileConfig = getMobileQueryConfig();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: mobileConfig.retry,
+      refetchOnWindowFocus: mobileConfig.refetchOnWindowFocus,
+      staleTime: mobileConfig.staleTime,
+      gcTime: mobileConfig.gcTime,
+      refetchOnMount: mobileConfig.refetchOnMount,
+      refetchOnReconnect: mobileConfig.refetchOnReconnect,
+    },
+  },
+});
 
 const App: React.FC = () => {
+  const [firebaseInitialized, setFirebaseInitialized] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detect mobile device on mount
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    console.log('Device type detected:', isMobileDevice() ? 'Mobile' : 'Desktop');
+  }, []);
+  
+  // Initialize Firebase once when App mounts
+  useEffect(() => {
+    let mounted = true;
+    let timeoutId: NodeJS.Timeout;
+    
+    const initializeFirebase = async () => {
+      try {
+        console.log('Starting Firebase initialization...');
+        await firebaseBlogService.initialize();
+        if (mounted) {
+          console.log('Firebase initialized successfully');
+          setFirebaseInitialized(true);
+        }
+      } catch (error) {
+        if (mounted) {
+          console.error('Firebase initialization failed:', error);
+          setFirebaseInitialized(true); // Still allow app to load
+        }
+      }
+    };
+    
+    // Set timeout to force app to load even if Firebase fails
+    // Longer timeout for mobile due to potentially slower connections
+    const timeoutDuration = isMobile ? 15000 : 10000;
+    timeoutId = setTimeout(() => {
+      if (mounted && !firebaseInitialized) {
+        console.warn(`Firebase initialization timed out after ${timeoutDuration/1000}s, loading app anyway`);
+        setFirebaseInitialized(true);
+      }
+    }, timeoutDuration);
+    
+    initializeFirebase();
+    
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [firebaseInitialized, isMobile]);
+  
   // For debugging
   console.log('Blog App rendered');
   
   // Determine if we need a basename - always use empty for standalone
   const basename = "";
+  
+  // Show loading until Firebase is initialized
+  if (!firebaseInitialized) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-900">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-4 border-purple-500 border-t-transparent animate-spin mx-auto mb-4"></div>
+          <p className="text-white">Initializing blog...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -45,7 +119,7 @@ const App: React.FC = () => {
           <Routes>
             {/* Admin Routes - No Header/Footer */}
             <Route 
-              path="admin" 
+              path="/admin" 
               element={
                 <ProtectedRoute redirectPath="/login">
                   <AdminDashboard />
@@ -54,43 +128,80 @@ const App: React.FC = () => {
             />
             
             {/* Auth Routes - No Header/Footer */}
-            <Route path="login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
             
             {/* Debug Routes */}
-            <Route path="debug" element={<div style={{padding: '2rem', background: 'white'}}>
+            <Route path="/debug" element={<div style={{padding: '2rem', background: 'white'}}>
               <h1>Debug Page</h1>
               <p>This page is for debugging routing issues.</p>
             </div>} />
             
-            <Route path="firebase-debug" element={
+            <Route path="/firebase-debug" element={
               <div style={{padding: '2rem', background: 'white', minHeight: '100vh'}}>
                 <FirebaseDebug />
               </div>
             } />
             
             {/* Regular Blog Routes - With Header/Footer */}
-            <Route path="/*" element={
+            <Route path="/post/:slug" element={
               <div className="min-h-screen blog-root relative">
-                {/* Nightscape background effect for dark mode */}
                 <div className="nightscape-bg hidden dark:block"></div>
-                {/* Light pattern for light mode */}
                 <div className="dots-bg block dark:hidden"></div>
-                
                 <BlogHeader />
                 <main className="blog-main pt-4">
                   <div className="container mx-auto py-8 px-6">
-                    <Routes>
-                      <Route index element={<Blog />} />
-                      <Route path="post/:slug" element={<BlogPost />} />
-                      <Route path="category/:category" element={<Blog />} />
-                      <Route path="tags/:tag" element={<Blog />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <BlogPost />
                   </div>
                 </main>
                 <BlogFooter />
               </div>
             } />
+            
+            <Route path="/category/:category" element={
+              <div className="min-h-screen blog-root relative">
+                <div className="nightscape-bg hidden dark:block"></div>
+                <div className="dots-bg block dark:hidden"></div>
+                <BlogHeader />
+                <main className="blog-main pt-4">
+                  <div className="container mx-auto py-8 px-6">
+                    <Blog />
+                  </div>
+                </main>
+                <BlogFooter />
+              </div>
+            } />
+            
+            <Route path="/tags/:tag" element={
+              <div className="min-h-screen blog-root relative">
+                <div className="nightscape-bg hidden dark:block"></div>
+                <div className="dots-bg block dark:hidden"></div>
+                <BlogHeader />
+                <main className="blog-main pt-4">
+                  <div className="container mx-auto py-8 px-6">
+                    <Blog />
+                  </div>
+                </main>
+                <BlogFooter />
+              </div>
+            } />
+            
+            {/* Home Route */}
+            <Route path="/" element={
+              <div className="min-h-screen blog-root relative">
+                <div className="nightscape-bg hidden dark:block"></div>
+                <div className="dots-bg block dark:hidden"></div>
+                <BlogHeader />
+                <main className="blog-main pt-4">
+                  <div className="container mx-auto py-8 px-6">
+                    <Blog />
+                  </div>
+                </main>
+                <BlogFooter />
+              </div>
+            } />
+            
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

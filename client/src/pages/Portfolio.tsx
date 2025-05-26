@@ -22,7 +22,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ showAll = true }) => {
         </Helmet>
       )}
       
-      <section id="portfolio" className={`py-20 gradient-bg dark:bg-darker ${showAll ? 'mt-16' : ''}`}>
+      <section id="portfolio" className={`py-12 sm:py-16 md:py-20 gradient-bg dark:bg-darker section-mobile-spacing ${showAll ? 'mt-16' : ''}`}>
         <div className="container mx-auto px-4">
           <SectionTitle
             title={<>My <span className="text-gradient">Portfolio</span></>}
@@ -31,7 +31,7 @@ const Portfolio: React.FC<PortfolioProps> = ({ showAll = true }) => {
           />
           
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mobile-grid-single"
             variants={staggerContainer}
             initial="initial"
             whileInView="animate"
@@ -52,10 +52,10 @@ const Portfolio: React.FC<PortfolioProps> = ({ showAll = true }) => {
           </motion.div>
           
           {!showAll && (
-            <div className="text-center mt-12">
-              <Link to="/portfolio" className="px-8 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-medium hover:bg-white/20 transition-all glow-effect inline-flex items-center">
+            <div className="text-center mt-8 sm:mt-12">
+              <Link to="/portfolio" className="px-6 sm:px-8 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-medium hover:bg-white/20 transition-all glow-effect inline-flex items-center text-sm sm:text-base">
                 <span>View All Projects</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </Link>

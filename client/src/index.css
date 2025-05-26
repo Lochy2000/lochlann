@@ -370,3 +370,126 @@
 ::selection {
   @apply bg-primary/30 text-slate-800 dark:text-white;
 }
+
+/* Mobile Responsive Improvements */
+@media (max-width: 768px) {
+  /* Hero section mobile improvements */
+  .hero-mobile-adjustments {
+    padding-top: 5rem !important;
+    padding-bottom: 2rem !important;
+    min-height: 100vh !important;
+  }
+  
+  /* Profile image mobile scaling */
+  .hero-profile-mobile {
+    width: 200px !important;
+    height: 200px !important;
+    margin: 0 auto !important;
+  }
+  
+  /* Text adjustments for mobile */
+  .hero-title-mobile {
+    font-size: 2.5rem !important;
+    line-height: 1.2 !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .hero-subtitle-mobile {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Button spacing mobile */
+  .hero-buttons-mobile {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+  }
+  
+  .hero-buttons-mobile > * {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  
+  /* About page mobile improvements */
+  .about-hero-mobile {
+    padding-top: 6rem !important;
+    padding-bottom: 3rem !important;
+  }
+  
+  .about-title-mobile {
+    font-size: 2.5rem !important;
+    line-height: 1.2 !important;
+  }
+  
+  .about-subtitle-mobile {
+    font-size: 1.125rem !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Section spacing improvements */
+  .section-mobile-spacing {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+  
+  /* Grid improvements for mobile */
+  .mobile-grid-single {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+  
+  /* Card improvements for mobile */
+  .card-mobile-spacing {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  /* Text content mobile improvements */
+  .text-content-mobile {
+    font-size: 0.9rem !important;
+    line-height: 1.6 !important;
+  }
+  
+  /* Tab navigation mobile */
+  .tab-nav-mobile {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  
+  .tab-nav-mobile button {
+    font-size: 0.875rem !important;
+    padding: 0.5rem 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small screens */
+  .hero-title-mobile {
+    font-size: 2rem !important;
+  }
+  
+  .about-title-mobile {
+    font-size: 2rem !important;
+  }
+  
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* WebGL canvas mobile fix */
+  canvas {
+    touch-action: manipulation !important;
+  }
+  
+  /* Mobile About Page Enhancements */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

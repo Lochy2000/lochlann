@@ -4,6 +4,7 @@ import { FaSearch, FaBars, FaTimes, FaCoffee, FaCodeBranch, FaLaptopCode, FaLock
 import ThemeToggle from './ThemeToggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { isMobileDevice, debounce } from '../utils/mobileDetection';
 
 const BlogHeader: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -12,6 +13,12 @@ const BlogHeader: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // Detect mobile device
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+  }, []);
   
   // Determine if we're in local development
   const isLocalDevelopment = window.location.port === "5001";
@@ -23,23 +30,50 @@ const BlogHeader: React.FC = () => {
       : "/";
 
   useEffect(() => {
-    const handleScroll = () => {
+    // Debounced scroll handler for better mobile performance
+    const handleScroll = debounce(() => {
       setIsScrolled(window.scrollY > 10);
-    };
+    }, isMobile ? 100 : 50); // Longer debounce on mobile
     
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMobile]);
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
     if (searchOpen) setSearchOpen(false);
+    
+    // Prevent body scroll when mobile menu is open
+    if (!mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  };
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    document.body.style.overflow = 'unset';
   };
 
   const toggleSearch = () => {
     setSearchOpen(!searchOpen);
-    if (mobileMenuOpen) setMobileMenuOpen(false);
+    if (mobileMenuOpen) {
+      closeMobileMenu();
+    }
   };
+
+  // Close mobile menu on route changes
+  useEffect(() => {
+    closeMobileMenu();
+  }, [location.pathname]);
+
+  // Clean up body overflow on unmount
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,7 +237,7 @@ const BlogHeader: React.FC = () => {
           >
             <div className="flex justify-end p-4">
               <button
-                onClick={toggleMobileMenu}
+                onClick={closeMobileMenu}
                 className="text-slate-200 hover:text-white"
                 aria-label="Close mobile menu"
               >
@@ -212,13 +246,11 @@ const BlogHeader: React.FC = () => {
             </div>
             <div className="flex flex-col items-center justify-center flex-1 space-y-6 text-lg">
               <a
-                href="/home"
+                href="/"
                 className={`text-slate-300 hover:text-primary-light font-medium ${
                   location.pathname === '/' ? 'text-primary-light' : ''
                 }`}
-                onClick={() => {
-                  toggleMobileMenu();
-                }}
+                onClick={closeMobileMenu}
               >
                 Home
               </a>
@@ -227,7 +259,7 @@ const BlogHeader: React.FC = () => {
                 className={`text-slate-300 hover:text-primary-light font-medium flex items-center gap-2 ${
                   location.pathname.includes('/category/web-development') ? 'text-primary-light' : ''
                 }`}
-                onClick={toggleMobileMenu}
+                onClick={closeMobileMenu}
               >
                 <FaLaptopCode /> Web Dev
               </Link>
@@ -236,7 +268,7 @@ const BlogHeader: React.FC = () => {
                 className={`text-slate-300 hover:text-primary-light font-medium flex items-center gap-2 ${
                   location.pathname.includes('/category/react') ? 'text-primary-light' : ''
                 }`}
-                onClick={toggleMobileMenu}
+                onClick={closeMobileMenu}
               >
                 <FaCodeBranch /> React
               </Link>
@@ -245,7 +277,7 @@ const BlogHeader: React.FC = () => {
                 className={`text-slate-300 hover:text-primary-light font-medium flex items-center gap-2 ${
                   location.pathname.includes('/category/coffee-thoughts') ? 'text-primary-light' : ''
                 }`}
-                onClick={toggleMobileMenu}
+                onClick={closeMobileMenu}
               >
                 <FaCoffee /> Coffee Thoughts
               </Link>
@@ -254,7 +286,7 @@ const BlogHeader: React.FC = () => {
                 <Link 
                   to="/admin"
                   className="lofi-button-secondary mt-4 flex items-center gap-2"
-                  onClick={toggleMobileMenu}
+                  onClick={closeMobileMenu}
                 >
                   <FaLock /> Admin
                 </Link>

@@ -7,6 +7,7 @@ import { FaCalendarAlt, FaClock, FaTag, FaCoffee, FaCode, FaTerminal, FaSearch }
 import { firebaseBlogService, type BlogPost, type Category } from '../utils/firebaseBlogService';
 import ParallaxVideo from '../components/ParallaxVideo';
 import FilterDropdown from '../components/FilterDropdown';
+import { isMobileDevice, getMobileQueryConfig } from '../utils/mobileDetection';
 import '../styles/blog-dropdown-fix.css';
 
 // Animation variants
@@ -88,7 +89,15 @@ const Blog: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
   const postsPerPage = 9;
+
+  // Detect mobile device and get appropriate query config
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+  }, []);
+
+  const mobileQueryConfig = getMobileQueryConfig();
 
   // Set category from URL params on load
   useEffect(() => {
@@ -97,25 +106,11 @@ const Blog: React.FC = () => {
     }
   }, [categoryParam]);
   
-  // Fetch categories from Firebase (no authentication required for reading)
+  // Fetch categories from Firebase with mobile-optimized settings
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
       console.log('Fetching categories for blog filter...');
-      
-      // Always provide fallback categories first
-      const fallbackCategories = [
-        { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
-        { id: '1', name: 'Web Development', slug: 'web-development', color: 'bg-blue-500', createdAt: '', updatedAt: '' },
-        { id: '2', name: 'React', slug: 'react', color: 'bg-green-500', createdAt: '', updatedAt: '' },
-        { id: '3', name: 'Databases', slug: 'databases', color: 'bg-red-500', createdAt: '', updatedAt: '' },
-        { id: '4', name: 'Tools', slug: 'tools', color: 'bg-purple-500', createdAt: '', updatedAt: '' },
-        { id: '5', name: 'Coffee Thoughts', slug: 'coffee-thoughts', color: 'bg-coffee', createdAt: '', updatedAt: '' },
-        { id: '6', name: 'Coding', slug: 'coding', color: 'bg-indigo-500', createdAt: '', updatedAt: '' },
-        { id: '7', name: 'Hacking', slug: 'hacking', color: 'bg-orange-500', createdAt: '', updatedAt: '' },
-        { id: '8', name: 'Tutorials', slug: 'tutorials', color: 'bg-teal-500', createdAt: '', updatedAt: '' },
-        { id: '9', name: 'Uncategorized', slug: 'uncategorized', color: 'bg-gray-500', createdAt: '', updatedAt: '' }
-      ];
       
       try {
         const cats = await firebaseBlogService.getCategories();
@@ -128,21 +123,27 @@ const Blog: React.FC = () => {
             ...cats
           ];
         } else {
-          console.log('No categories from Firebase, using fallback');
-          return fallbackCategories;
+          console.log('No categories from Firebase, creating minimal set');
+          // If no categories exist, return minimal set (will be created by Firebase service)
+          return [
+            { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
+            { id: 'web-dev', name: 'Web Development', slug: 'web-development', color: 'bg-blue-500', createdAt: '', updatedAt: '' },
+            { id: 'uncategorized', name: 'Uncategorized', slug: 'uncategorized', color: 'bg-gray-500', createdAt: '', updatedAt: '' }
+          ];
         }
       } catch (error) {
-        console.error('Error fetching categories, using fallback:', error);
-        return fallbackCategories;
+        console.error('Error fetching categories:', error);
+        // Return minimal fallback only on error
+        return [
+          { id: 'all', name: 'All', slug: 'all', color: 'bg-slate-500', createdAt: '', updatedAt: '' },
+          { id: 'uncategorized', name: 'Uncategorized', slug: 'uncategorized', color: 'bg-gray-500', createdAt: '', updatedAt: '' }
+        ];
       }
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes (renamed from cacheTime)
-    retry: false, // Don't retry on failure, use fallback immediately
-    refetchOnWindowFocus: false // Don't refetch when window gains focus
+    ...mobileQueryConfig, // Use mobile-optimized settings
   });
 
-  // Fetch blog posts from Firebase
+  // Fetch blog posts from Firebase with mobile-optimized settings
   const { data: blogPosts, isLoading, error } = useQuery({
     queryKey: ['blog-posts'],
     queryFn: async () => {
@@ -185,10 +186,7 @@ const Blog: React.FC = () => {
         return mockBlogPosts;
       }
     },
-    retry: false, // Don't retry on failure, use fallback immediately
-    refetchOnWindowFocus: false, // Don't refetch when window gains focus
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000 // Keep in cache for 10 minutes (renamed from cacheTime)
+    ...mobileQueryConfig, // Use mobile-optimized settings
   });
 
   // Set tag filter from URL params on load

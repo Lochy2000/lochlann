@@ -19,6 +19,7 @@ import Portfolio from "@/pages/Portfolio";
 import Contact from "@/pages/Contact";
 import Resume from "@/pages/Resume";
 import CV from "@/pages/CV";
+import MarineConservation from "@/pages/MarineConservation";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import DarkModeToggle from "@/components/layout/DarkModeToggle";
@@ -70,10 +71,9 @@ const router = createBrowserRouter(
         <Route path="about" element={<About />} />
         <Route path="experience" element={<Experience />} />
         <Route path="portfolio" element={<Portfolio showAll={true} />} />
+        <Route path="marine-conservation" element={<MarineConservation />} />
         <Route path="contact" element={<Contact />} />
         <Route path="resume" element={<Resume />} />
-        <Route path="blog" element={<Navigate to="/blog/" />} />
-        <Route path="blog/*" element={<Navigate to="/blog/" />} />
         <Route path="*" element={<NotFound />} />
       </Route>
       <Route path="/download" element={<DownloadLayout />}>

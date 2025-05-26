@@ -50,5 +50,31 @@ export const portfolioProjects = [
     technologies: ['FastAPI', 'Python', 'DJANGO', 'Tailwindd CSS'],
     demoLink: 'https://boost-dev-9ed56bf6f182.herokuapp.com/',
     githubLink: 'https://github.com/Lochy2000/boost.dev'
+  },
+  {
+    title: 'HerEdge',
+    shortTitle: 'Events PlatForm',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1748278573/2b408e03-f831-4225-b6ef-74d8817ba32f.png',
+    description: "Using Wix and Stripe to create a website for a local business to sell tickets to events. Has grown to over 200 members.",
+    technologies: ['Wix, Velo, JavaScript, css'],
+    demoLink: 'https://www.heredge.club/',
+  },
+  {
+    title: 'Eventify',
+    shortTitle: ' Events Based app built in Django',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1748278994/963e8f11-ee77-4112-8130-155a81740ab1.png',
+    description: "Full Stack project for my final deploma project. Backend and frontend seperated and communicate via restful API's. ",
+    technologies: ['Django, Heroku, restful API, Postgresql, tailwind css'],
+    demoLink: 'https://eventify-front-e281c9a84c02.herokuapp.com/',
+    githubLink: 'https://github.com/Lochy2000/eventify-frontend',
+  },
+  {
+    title: 'Botanic',
+    shortTitle: 'New Tech design',
+    image: 'https://res.cloudinary.com/dpw2txejq/image/upload/v1748279738/b59bd8a3-bd62-43a5-a98a-71218d5fad27.png',
+    description: "A frontend react project for a new tech company. Comapny looking to update there web presence. ",
+    technologies: ['React, API, tailwind css, GithubPages, Javascript'],
+    demoLink: 'https://lochy2000.github.io/botanic-website/technology',
+    githubLink: 'https://github.com/Lochy2000/botanic-website',
   }
 ];

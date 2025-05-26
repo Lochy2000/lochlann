@@ -3,11 +3,11 @@
  */
 
 export const downloadCV = () => {
-  // Try multiple potential paths for cv.pdf
+  // Try multiple potential paths for the updated CV
   const cvPaths = [
-    '/attached_assets/files/cv.pdf',
-    '/public/attached_assets/files/cv.pdf',
-    '/assets/files/cv.pdf'
+    '/attached_assets/files/Loch_CV-v2.pdf',
+    '/public/attached_assets/files/Loch_CV-v2.pdf',
+    '/assets/files/Loch_CV-v2.pdf'
   ];
 
   const tryDownload = async (path: string): Promise<boolean> => {
@@ -49,6 +49,6 @@ export const downloadCV = () => {
 };
 
 export const getCVUrl = (): string => {
-  // Return the primary CV URL
-  return '/attached_assets/files/cv.pdf';
+  // Return the primary CV URL (updated version)
+  return '/attached_assets/files/Loch_CV-v2.pdf';
 };

@@ -23,8 +23,8 @@ const Header = () => {
   };
 
   const headerClasses = `fixed w-full ${
-    isScrolled ? 'bg-light/90 dark:bg-dark/90 shadow-sm' : 'bg-transparent'
-  } backdrop-blur-md z-40 transition-all duration-300`;
+    isScrolled ? 'bg-white/90 dark:bg-slate-900/90 shadow-sm' : 'bg-transparent'
+  } backdrop-blur-md z-50 transition-all duration-300`;
 
   return (
     <header className={headerClasses}>
@@ -60,9 +60,16 @@ const Header = () => {
             className={`${location.pathname === '/portfolio' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
             Portfolio
           </Link>
+          <Link 
+            to="/marine-conservation"
+            className={`${location.pathname === '/marine-conservation' ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
+            Marine Conservation
+          </Link>
           <a 
-            href={'https://lochlann.vercel.app/'}
-            className={`${location.pathname.startsWith('/blog') ? 'text-primary dark:text-primary-light' : 'text-slate-700 dark:text-slate-300'} hover:text-primary dark:hover:text-primary-light transition-colors`}>
+            href={blogUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light transition-colors">
             Blog
           </a>
           <Link 
@@ -74,13 +81,20 @@ const Header = () => {
         
         {/* Mobile Menu Button */}
         <button 
-          className="md:hidden text-slate-700 dark:text-white"
+          className="md:hidden text-slate-700 dark:text-white z-50 relative p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
           onClick={toggleMobileMenu}
-          aria-label="Open mobile menu"
+          aria-label="Toggle mobile menu"
+          style={{ pointerEvents: 'auto' }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-          </svg>
+          {mobileMenuOpen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+          )}
         </button>
       </div>
       
