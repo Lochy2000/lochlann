@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/2dbe3fc6-280a-4465-b80d-425a984e45ad)
+
 # Lochlann's Personal Portfolio Blog System
 
 This is a blog system for Lochlann's personal portfolio website. It uses Supabase as the database backend and includes an admin dashboard for creating and managing blog posts.
