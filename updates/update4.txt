@@ -1,0 +1,274 @@
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { 
+  FaWater, 
+  FaRunning, 
+  FaCode, 
+  FaGlobeEurope, 
+  FaCamera, 
+  FaMountain,
+  FaPlane,
+  FaLanguage,
+  FaHeart,
+  FaFish
+} from 'react-icons/fa';
+
+interface InterestCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  stats?: { label: string; value: string }[];
+  image?: string;
+  color: string;
+}
+
+const InterestCard: React.FC<InterestCardProps> = ({ 
+  icon, 
+  title, 
+  description, 
+  stats, 
+  image, 
+  color 
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10"
+      whileHover={{ scale: 1.02, y: -5 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      transition={{ duration: 0.3 }}
+    >
+      {/* Background Image or Gradient */}
+      <div className="absolute inset-0">
+        {image ? (
+          <div 
+            className="w-full h-full bg-cover bg-center opacity-20"
+            style={{ backgroundImage: `url(${image})` }}
+          />
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${color} opacity-10`} />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 p-6 h-full flex flex-col">
+        {/* Icon and Title */}
+        <div className="flex items-center gap-3 mb-3">
+          <motion.div 
+            className={`p-2 rounded-xl bg-white/10 backdrop-blur-sm`}
+            animate={{ 
+              rotate: isHovered ? [0, 5, -5, 0] : 0,
+              scale: isHovered ? 1.1 : 1
+            }}
+            transition={{ duration: 0.6 }}
+          >
+            {icon}
+          </motion.div>
+          <h3 className="text-xl font-bold text-white">{title}</h3>
+        </div>
+
+        {/* Description */}
+        <p className="text-slate-300 text-sm mb-4 flex-grow leading-relaxed">
+          {description}
+        </p>
+
+        {/* Stats */}
+        {stats && stats.length > 0 && (
+          <div className="grid grid-cols-2 gap-3">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                className="text-center p-2 rounded-lg bg-white/10 backdrop-blur-sm"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <div className="text-primary font-bold text-sm">{stat.value}</div>
+                <div className="text-slate-400 text-xs">{stat.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Hover Effects */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 rounded-2xl"
+        animate={{ opacity: isHovered ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+      />
+    </motion.div>
+  );
+};
+
+const PersonalInterestsSection = () => {
+  const interests = [
+    {
+      icon: <FaWater className="text-cyan-400 text-2xl" />,
+      title: "Underwater Explorer",
+      description: "PADI certified diver exploring marine ecosystems up to 30m. Passionate about ocean conservation and underwater photography.",
+      stats: [
+        { label: "Max Depth", value: "30m" },
+        { label: "Certification", value: "PADI" }
+      ],
+      color: "from-cyan-500 to-blue-600",
+      image: "https://res.cloudinary.com/dpw2txejq/image/upload/v1748281105/2f75a360-f2d9-45ce-9ef0-e79507261f4d.png"
+    },
+    {
+      icon: <FaRunning className="text-green-400 text-2xl" />,
+      title: "Endurance Athlete",
+      description: "Completed two London Marathons and multiple European half-marathons. Currently training for ultramarathons.",
+      stats: [
+        { label: "Marathons", value: "2x" },
+        { label: "Countries", value: "3" }
+      ],
+      color: "from-green-500 to-emerald-600"
+    },
+    {
+      icon: <FaCode className="text-blue-400 text-2xl" />,
+      title: "Hackathon Competitor",
+      description: "Participated in 7 hackathons, winning 2. Love the intensity of rapid prototyping and creative problem-solving.",
+      stats: [
+        { label: "Competitions", value: "7" },
+        { label: "Wins", value: "2" }
+      ],
+      color: "from-blue-500 to-purple-600"
+    },
+    {
+      icon: <FaGlobeEurope className="text-orange-400 text-2xl" />,
+      title: "Global Citizen",
+      description: "Born in Denmark, lived across multiple countries. Fluent in English and Danish, bringing international perspective to every project.",
+      stats: [
+        { label: "Languages", value: "2" },
+        { label: "Countries", value: "4+" }
+      ],
+      color: "from-orange-500 to-red-600"
+    }
+  ];
+
+  const quickFacts = [
+    { icon: <FaMountain className="text-green-400" />, fact: "Climbed Ben Nevis", color: "text-green-400" },
+    { icon: <FaCamera className="text-purple-400" />, fact: "Underwater photographer", color: "text-purple-400" },
+    { icon: <FaPlane className="text-blue-400" />, fact: "15+ countries visited", color: "text-blue-400" },
+    { icon: <FaLanguage className="text-orange-400" />, fact: "Bilingual speaker", color: "text-orange-400" },
+    { icon: <FaHeart className="text-red-400" />, fact: "Marine conservation advocate", color: "text-red-400" },
+    { icon: <FaFish className="text-cyan-400" />, fact: "Free diving enthusiast", color: "text-cyan-400" }
+  ];
+
+  return (
+    <section className="py-16 bg-slate-900/50 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-primary/30 rounded-full"
+            animate={{
+              x: [0, Math.random() * 100, Math.random() * -100, 0],
+              y: [0, Math.random() * 100, Math.random() * -100, 0],
+              opacity: [0, 0.6, 0]
+            }}
+            transition={{
+              duration: 8 + Math.random() * 4,
+              repeat: Infinity,
+              delay: Math.random() * 5
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Section Header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Beyond the <span className="text-gradient">Code</span>
+          </h2>
+          <p className="text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            Life is about balance. When I'm not building digital solutions, 
+            I'm exploring the world above and below the surface.
+          </p>
+        </motion.div>
+
+        {/* Quick Facts Floating Elements */}
+        <motion.div 
+          className="flex flex-wrap justify-center gap-4 mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
+        >
+          {quickFacts.map((item, index) => (
+            <motion.div
+              key={index}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10"
+              whileHover={{ scale: 1.05, y: -2 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <span className="text-lg">{item.icon}</span>
+              <span className="text-white text-sm font-medium">{item.fact}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Interest Cards Grid */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3 }}
+        >
+          {interests.map((interest, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <InterestCard {...interest} />
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Call to Action */}
+        <motion.div
+          className="text-center mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5 }}
+        >
+          <motion.div
+            className="inline-block px-6 py-3 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full border border-primary/30 backdrop-blur-sm"
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: '0 0 25px rgba(59, 130, 246, 0.3)'
+            }}
+          >
+            <p className="text-white font-medium">
+              Want to collaborate or just chat about adventures? 
+              <span className="text-primary ml-2">Let's connect! 🚀</span>
+            </p>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+export default PersonalInterestsSection;

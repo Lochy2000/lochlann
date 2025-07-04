@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import MobileMenu from './MobileMenu';
-import { getBlogUrl } from '@/lib/blogUrl';
 
 const Header = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const blogUrl = getBlogUrl();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,7 +64,7 @@ const Header = () => {
             Marine Conservation
           </Link>
           <a 
-            href={blogUrl}
+            href="https://lochlann.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="text-slate-700 dark:text-slate-300 hover:text-primary dark:hover:text-primary-light transition-colors">

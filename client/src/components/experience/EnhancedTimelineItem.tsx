@@ -1,0 +1,295 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { IconType } from 'react-icons';
+import { FaChevronDown, FaChevronUp, FaMapMarkerAlt, FaCalendarAlt } from 'react-icons/fa';
+
+interface EnhancedTimelineItemProps {
+  position: number;
+  date: string;
+  title: string;
+  company: string;
+  description: string;
+  skills: string[];
+  keyPoints?: string[];
+  icon?: IconType;
+  iconColor?: string;
+  isAlternate?: boolean;
+  achievement?: string;
+  ongoing?: boolean;
+  location?: string;
+}
+
+const EnhancedTimelineItem: React.FC<EnhancedTimelineItemProps> = ({
+  position,
+  date,
+  title,
+  company,
+  description,
+  skills,
+  keyPoints,
+  icon: Icon,
+  iconColor = 'primary',
+  isAlternate = false,
+  achievement,
+  ongoing,
+  location
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const colorMap: Record<string, string> = {
+    primary: 'text-primary',
+    blue: 'text-blue-500',
+    green: 'text-green-500',
+    purple: 'text-purple-500',
+    red: 'text-red-500',
+    yellow: 'text-yellow-500',
+    cyan: 'text-cyan-500',
+    pink: 'text-pink-500',
+    indigo: 'text-indigo-500',
+    gray: 'text-gray-500',
+  };
+
+  const bgColorMap: Record<string, string> = {
+    primary: 'bg-primary/10',
+    blue: 'bg-blue-500/10',
+    green: 'bg-green-500/10',
+    purple: 'bg-purple-500/10',
+    red: 'bg-red-500/10',
+    yellow: 'bg-yellow-500/10',
+    cyan: 'bg-cyan-500/10',
+    pink: 'bg-pink-500/10',
+    indigo: 'bg-indigo-500/10',
+    gray: 'bg-gray-500/10',
+  };
+
+  const iconClass = colorMap[iconColor] || 'text-primary';
+  const bgClass = bgColorMap[iconColor] || 'bg-primary/10';
+
+  return (
+    <motion.div
+      className={`relative flex flex-col md:flex-row gap-4 pb-16 ${
+        isAlternate ? 'md:flex-row-reverse text-right' : 'text-left'
+      }`}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6, delay: position * 0.1 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+    >
+      {/* Enhanced Timeline line and dot with pulse animation */}
+      <div className="absolute top-0 bottom-0 left-[19px] md:left-1/2 md:transform md:-translate-x-1/2 w-1 z-0">
+        <motion.div 
+          className="w-full h-full bg-gradient-to-b from-primary/80 to-secondary/50"
+          animate={{
+            background: isHovered 
+              ? ['linear-gradient(to bottom, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.5))',
+                 'linear-gradient(to bottom, rgba(139, 92, 246, 0.9), rgba(59, 130, 246, 0.6))',
+                 'linear-gradient(to bottom, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.5))']
+              : 'linear-gradient(to bottom, rgba(59, 130, 246, 0.8), rgba(139, 92, 246, 0.5))'
+          }}
+          transition={{ duration: 2, repeat: isHovered ? Infinity : 0 }}
+        />
+      </div>
+      
+      {/* Enhanced icon with animated background - Fixed positioning */}
+      <motion.div 
+        className={`timeline-icon absolute top-1 left-[11px] md:left-1/2 md:transform md:-translate-x-1/2 w-12 h-12 rounded-full border-4 border-white dark:border-slate-900 flex items-center justify-center z-20 ${bgClass}`}
+        whileHover={{ 
+          scale: 1.2,
+          boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)',
+          transition: { duration: 0.2 }
+        }}
+        animate={{
+          boxShadow: isHovered 
+            ? ['0 0 0px rgba(59, 130, 246, 0)', '0 0 15px rgba(59, 130, 246, 0.5)', '0 0 0px rgba(59, 130, 246, 0)']
+            : '0 0 0px rgba(59, 130, 246, 0)'
+        }}
+        transition={{ duration: 2, repeat: isHovered ? Infinity : 0 }}
+      >
+        {Icon && (
+          <motion.div
+            animate={{ rotate: isHovered ? 360 : 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <Icon className={`text-lg ${iconClass}`} />
+          </motion.div>
+        )}
+      </motion.div>
+
+      {/* Content - Time/Title section with enhanced animations */}
+      <div className={`md:w-1/2 ${isAlternate ? 'md:pr-12' : 'md:pl-12'} pt-2`}>
+        <div className="hidden md:block">
+          <motion.div 
+            className={`text-sm font-mono flex items-center gap-2 ${ongoing ? 'text-green-500' : 'text-primary'}`}
+            animate={{ opacity: isHovered ? 1 : 0.8 }}
+          >
+            <FaCalendarAlt className="w-3 h-3" />
+            {date} {ongoing && (
+              <motion.span 
+                className="inline-flex items-center px-2 py-1 rounded-full bg-green-500/20 text-green-500 text-xs"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                Ongoing
+              </motion.span>
+            )}
+          </motion.div>
+          
+          {achievement && (
+            <motion.div 
+              className="inline-block px-3 py-1 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 text-primary mt-2 mb-3 text-xs font-medium border border-primary/30"
+              whileHover={{ scale: 1.05 }}
+            >
+              🏆 {achievement}
+            </motion.div>
+          )}
+          
+          <motion.h3 
+            className="text-xl font-bold text-slate-800 dark:text-white mb-1"
+            animate={{ 
+              background: isHovered 
+                ? 'linear-gradient(45deg, #3b82f6, #8b5cf6)'
+                : 'transparent',
+              WebkitBackgroundClip: isHovered ? 'text' : 'unset',
+              WebkitTextFillColor: isHovered ? 'transparent' : 'inherit'
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            {title}
+          </motion.h3>
+          
+          <p className="text-slate-500 dark:text-slate-400 font-medium">{company}</p>
+          
+          {location && (
+            <div className="flex items-center gap-1 mt-1 text-slate-400 text-sm">
+              <FaMapMarkerAlt className="w-3 h-3" />
+              {location}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Content - Description section with enhanced card */}
+      <div className={`md:w-1/2 ${isAlternate ? 'md:pl-12' : 'md:pr-12'} pt-2 ml-16 md:ml-0`}>
+        <div className="md:hidden mb-3">
+          <div className={`text-sm font-mono flex items-center gap-2 ${ongoing ? 'text-green-500' : 'text-primary'}`}>
+            <FaCalendarAlt className="w-3 h-3" />
+            {date} {ongoing && <span className="text-green-500">(Ongoing)</span>}
+          </div>
+          
+          {achievement && (
+            <div className="inline-block px-2 py-1 rounded bg-primary/20 text-xs text-primary mt-1 mb-2">
+              🏆 {achievement}
+            </div>
+          )}
+          
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white">{title}</h3>
+          <p className="text-slate-500 dark:text-slate-400">{company}</p>
+          
+          {location && (
+            <div className="flex items-center gap-1 mt-1 text-slate-400 text-sm">
+              <FaMapMarkerAlt className="w-3 h-3" />
+              {location}
+            </div>
+          )}
+        </div>
+
+        <motion.div 
+          className="bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-xl p-6 border border-slate-200/80 dark:border-slate-700/80 transition-all duration-300 relative overflow-hidden"
+          whileHover={{ 
+            y: -2,
+            borderColor: 'rgba(59, 130, 246, 0.5)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(59, 130, 246, 0.1)'
+          }}
+        >
+          {/* Subtle tech border effect */}
+          <motion.div
+            className="absolute inset-0 rounded-xl"
+            animate={{
+              background: isHovered 
+                ? 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent)'
+                : 'transparent'
+            }}
+            transition={{ duration: 0.4 }}
+          />
+          
+          <div className="relative z-10">
+            <p className="text-slate-800 dark:text-slate-200 mb-4 leading-relaxed">
+              {description}
+            </p>
+
+            {/* Enhanced Key Points section */}
+            {keyPoints && keyPoints.length > 0 && (
+              <div className="mb-4">
+                <motion.button
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="flex items-center gap-2 text-primary hover:text-primary-dark transition-colors text-sm font-medium group"
+                  whileHover={{ x: 5 }}
+                >
+                  <span>{isExpanded ? 'Hide Details' : 'Show Key Responsibilities'}</span>
+                  <motion.div
+                    animate={{ rotate: isExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <FaChevronDown className="w-3 h-3" />
+                  </motion.div>
+                </motion.button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-3 overflow-hidden"
+                    >
+                      <ul className="space-y-2 pl-4">
+                        {keyPoints.map((point, idx) => (
+                          <motion.li
+                            key={idx}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="text-slate-600 dark:text-slate-300 text-sm flex items-start gap-2"
+                          >
+                            <span className="text-primary mt-1">•</span>
+                            <span>{point}</span>
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Enhanced Skills with hover effects */}
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, index) => (
+                <motion.span
+                  key={index}
+                  className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300 text-xs font-medium border border-slate-200 dark:border-slate-600 cursor-default"
+                  whileHover={{ 
+                    scale: 1.02,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: 'rgba(59, 130, 246, 0.3)'
+                  }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  {skill}
+                </motion.span>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default EnhancedTimelineItem;

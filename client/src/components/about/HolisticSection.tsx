@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import AnimatedAchievementCard from './AnimatedAchievementCard';
+import EnhancedAchievementCard from './EnhancedAchievementCard';
 import { FaLaptopCode, FaRunning, FaWater } from 'react-icons/fa';
 
 const HolisticSection = () => {
@@ -120,14 +120,14 @@ const HolisticSection = () => {
   return (
     <div className="py-8 sm:py-12 md:py-16">
       <div className="flex justify-center mb-8 sm:mb-12">
-        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-x-auto">
+        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
               className={`px-3 py-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-full flex items-center gap-1 sm:gap-2 transition-all duration-300 whitespace-nowrap text-xs sm:text-sm md:text-base ${
                 activeCategory === category.id
-                  ? `bg-${category.color === 'primary' ? 'primary' : category.color.split('-')[0] + '-500'} text-white shadow-lg`
+                  ? 'bg-primary text-white shadow-sm'
                   : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
@@ -147,7 +147,7 @@ const HolisticSection = () => {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mobile-grid-single"
       >
         {filteredAchievements.map((achievement, index) => (
-          <AnimatedAchievementCard
+          <EnhancedAchievementCard
             key={`${activeCategory}-${index}`}
             title={achievement.title}
             description={achievement.description}

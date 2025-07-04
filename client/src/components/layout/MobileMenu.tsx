@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getBlogUrl } from '@/lib/blogUrl';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -11,7 +10,6 @@ interface MobileMenuProps {
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
-  const blogUrl = getBlogUrl();
 
   // Close the mobile menu when changing routes (but not on initial load)
   useEffect(() => {
@@ -247,7 +245,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
               </motion.div>
               <motion.div variants={itemVariants}>
                 <a 
-                  href={blogUrl} 
+                  href="https://lochlann.vercel.app" 
                   style={{
                     display: 'block',
                     padding: '12px 16px',

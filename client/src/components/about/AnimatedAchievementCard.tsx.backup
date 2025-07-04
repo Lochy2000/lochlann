@@ -1,0 +1,335 @@
+import { useState, useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { IconType } from 'react-icons';
+
+interface AnimatedAchievementCardProps {
+  title: string;
+  description: string;
+  detailedDescription?: string;
+  icon: IconType;
+  color?: string;
+  date?: string;
+  category?: string;
+}
+
+const AnimatedAchievementCard: React.FC<AnimatedAchievementCardProps> = ({
+  title,
+  description,
+  detailedDescription,
+  icon: Icon,
+  color = 'primary',
+  date,
+  category
+}) => {
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Mouse tracking for 3D effect
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["17.5deg", "-17.5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-17.5deg", "17.5deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+    setIsHovered(false);
+  };
+
+  const colorMap: Record<string, { primary: string; bg: string; light: string; accent: string }> = {
+    primary: { 
+      primary: 'text-primary', 
+      bg: 'bg-primary/10', 
+      light: 'text-primary-light',
+      accent: 'border-primary/30'
+    },
+    'blue-500': { 
+      primary: 'text-blue-500', 
+      bg: 'bg-blue-500/10', 
+      light: 'text-blue-400',
+      accent: 'border-blue-500/30'
+    },
+    'green-500': { 
+      primary: 'text-green-500', 
+      bg: 'bg-green-500/10', 
+      light: 'text-green-400',
+      accent: 'border-green-500/30'
+    },
+    'purple-500': { 
+      primary: 'text-purple-500', 
+      bg: 'bg-purple-500/10', 
+      light: 'text-purple-400',
+      accent: 'border-purple-500/30'
+    },
+    'cyan-500': { 
+      primary: 'text-cyan-500', 
+      bg: 'bg-cyan-500/10', 
+      light: 'text-cyan-400',
+      accent: 'border-cyan-500/30'
+    },
+    'orange-500': { 
+      primary: 'text-orange-500', 
+      bg: 'bg-orange-500/10', 
+      light: 'text-orange-400',
+      accent: 'border-orange-500/30'
+    }
+  };
+
+  const colors = colorMap[color] || colorMap.primary;
+
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateY: rotateY,
+        rotateX: rotateX,
+        transformStyle: "preserve-3d",
+      }}
+      className="relative h-64 w-full perspective-1000 cursor-pointer"
+      whileHover={{ scale: 1.05 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+    >
+      <motion.div
+        className="flip-card-inner absolute w-full h-full"
+        initial={false}
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, ease: 'easeInOut' }}
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* Front of card */}
+        <motion.div
+          className={`flip-card-front absolute w-full h-full bg-white/5 backdrop-blur-sm dark:bg-slate-800/50 p-6 rounded-xl border-2 flex flex-col justify-between transition-all duration-300 ${colors.accent}`}
+          style={{ 
+            backfaceVisibility: "hidden",
+            transform: "translateZ(20px)"
+          }}
+          animate={{
+            boxShadow: isHovered 
+              ? ['0 10px 25px rgba(0,0,0,0.1)', '0 15px 35px rgba(0,0,0,0.15)', '0 10px 25px rgba(0,0,0,0.1)']
+              : '0 4px 15px rgba(0,0,0,0.05)',
+            borderColor: isHovered ? 'rgba(59, 130, 246, 0.4)' : 'rgba(255, 255, 255, 0.1)'
+          }}
+          transition={{ duration: 2, repeat: isHovered ? Infinity : 0 }}
+        >
+          {/* Animated background gradient */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 rounded-xl"
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+          />
+
+          <div className="relative z-10">
+            {/* Category and Date badges */}
+            <div className="flex justify-between items-start mb-4">
+              {category && (
+                <motion.span 
+                  className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/70 border border-white/20"
+                  whileHover={{ scale: 1.1 }}
+                >
+                  {category}
+                </motion.span>
+              )}
+              {date && (
+                <span className="text-xs text-white/50">{date}</span>
+              )}
+            </div>
+
+            {/* Icon with enhanced animation */}
+            <motion.div 
+              className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center mb-4 relative overflow-hidden`}
+              animate={{
+                background: isHovered 
+                  ? ['rgba(59, 130, 246, 0.1)', 'rgba(139, 92, 246, 0.15)', 'rgba(59, 130, 246, 0.1)']
+                  : 'rgba(59, 130, 246, 0.1)'
+              }}
+              transition={{ duration: 2, repeat: isHovered ? Infinity : 0 }}
+            >
+              {/* Animated shimmer effect */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                animate={{
+                  x: isHovered ? ['-100%', '100%'] : '-100%'
+                }}
+                transition={{ duration: 1.5, repeat: isHovered ? Infinity : 0 }}
+              />
+              
+              <motion.div
+                animate={{ 
+                  scale: isHovered ? [1, 1.2, 1] : 1,
+                  rotate: isHovered ? [0, 5, -5, 0] : 0
+                }}
+                transition={{ duration: 0.6 }}
+              >
+                <Icon className={`text-2xl ${colors.primary} relative z-10`} />
+              </motion.div>
+            </motion.div>
+
+            <motion.h4 
+              className="font-space font-bold text-lg mb-2 text-white leading-tight"
+              animate={{
+                background: isHovered 
+                  ? 'linear-gradient(45deg, #3b82f6, #8b5cf6)'
+                  : 'transparent',
+                WebkitBackgroundClip: isHovered ? 'text' : 'unset',
+                WebkitTextFillColor: isHovered ? 'transparent' : 'white'
+              }}
+              transition={{ duration: 0.3 }}
+            >
+              {title}
+            </motion.h4>
+            
+            <p className="text-slate-300 text-sm leading-relaxed">
+              {description}
+            </p>
+          </div>
+
+          {/* Enhanced "Learn more" button */}
+          {detailedDescription && (
+            <motion.button
+              onClick={handleFlip}
+              className={`mt-4 text-sm font-medium ${colors.light} hover:text-white flex items-center transition-colors duration-200 group relative`}
+              whileHover={{ x: 5 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span>Learn more</span>
+              <motion.svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 ml-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                animate={{ x: isHovered ? [0, 3, 0] : 0 }}
+                transition={{ duration: 1.5, repeat: isHovered ? Infinity : 0 }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </motion.svg>
+            </motion.button>
+          )}
+        </motion.div>
+
+        {/* Back of card */}
+        {detailedDescription && (
+          <motion.div
+            className={`flip-card-back absolute w-full h-full bg-gradient-to-br ${colors.bg} dark:bg-slate-800/70 p-6 rounded-xl border-2 ${colors.accent} flex flex-col justify-between backdrop-blur-sm`}
+            style={{ 
+              backfaceVisibility: "hidden",
+              transform: "rotateY(180deg) translateZ(20px)"
+            }}
+          >
+            {/* Floating particles effect */}
+            <div className="absolute inset-0 overflow-hidden rounded-xl">
+              {[...Array(5)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className={`absolute w-1 h-1 ${colors.bg} rounded-full`}
+                  animate={{
+                    x: [0, Math.random() * 100, Math.random() * 100],
+                    y: [0, Math.random() * 100, Math.random() * 100],
+                    opacity: [0, 0.6, 0]
+                  }}
+                  transition={{
+                    duration: 3 + Math.random() * 2,
+                    repeat: Infinity,
+                    delay: Math.random() * 2
+                  }}
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`
+                  }}
+                />
+              ))}
+            </div>
+
+            <div className="relative z-10">
+              <motion.h4 
+                className={`font-space font-bold text-lg mb-3 ${colors.primary}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {title}
+              </motion.h4>
+              
+              <motion.p 
+                className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                {detailedDescription}
+              </motion.p>
+            </div>
+
+            <motion.button
+              onClick={handleFlip}
+              className={`mt-4 text-sm font-medium ${colors.primary} hover:text-white flex items-center transition-colors duration-200 group`}
+              whileHover={{ x: -5 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              <span>Back</span>
+            </motion.button>
+          </motion.div>
+        )}
+      </motion.div>
+
+      {/* Reflection effect */}
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-xl pointer-events-none"
+        animate={{
+          opacity: isHovered ? 0.8 : 0.3,
+          background: isHovered 
+            ? 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%)'
+        }}
+        transition={{ duration: 0.3 }}
+      />
+    </motion.div>
+  );
+};
+
+export default AnimatedAchievementCard;

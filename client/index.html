@@ -7,6 +7,49 @@
     <meta name="description" content="Personal portfolio of Lochlann O'Higgins - Web Developer and Engineer" />
     <!-- Base tag to help with routing -->
     <base href="/" />
+    
+    <!-- Prevent flash of wrong theme on page load -->
+    <script>
+      (function() {
+        // Improved theme detection
+        const STORAGE_KEY = 'theme';
+        const THEMES = ['light', 'dark'];
+        const DEFAULT_THEME = 'dark';
+        
+        function getSystemTheme() {
+          try {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          } catch {
+            return DEFAULT_THEME;
+          }
+        }
+        
+        function getStoredTheme() {
+          try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            return (stored && THEMES.includes(stored)) ? stored : null;
+          } catch {
+            return null;
+          }
+        }
+        
+        function applyTheme(theme) {
+          // Remove all theme classes
+          THEMES.forEach(t => document.documentElement.classList.remove(t));
+          // Add current theme
+          document.documentElement.classList.add(theme);
+          document.documentElement.setAttribute('data-theme', theme);
+        }
+        
+        // Get effective theme
+        const storedTheme = getStoredTheme();
+        const systemTheme = getSystemTheme();
+        const effectiveTheme = storedTheme || systemTheme;
+        
+        // Apply theme immediately
+        applyTheme(effectiveTheme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

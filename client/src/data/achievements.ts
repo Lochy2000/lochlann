@@ -1,19 +1,19 @@
 import { 
   FaMedal, 
-  FaRunning, 
+  FaCode, 
   FaChalkboardTeacher, 
   FaBiking,
   FaLaptopCode,
   FaWater,
   FaWheelchair,
-  FaGlobeEurope
+  FaProjectDiagram
 } from 'react-icons/fa';
 
 export const achievements = [
   {
-    title: 'Marathon Runner',
-    description: 'Completed two London Marathons and half-marathons in Belgium and Germany.',
-    icon: FaRunning
+    title: '8+ Freelance Projects',
+    description: 'Successfully delivered web development projects for startups and small businesses across multiple industries.',
+    icon: FaProjectDiagram
   },
   {
     title: '2x Hackathon Winner',
@@ -31,18 +31,18 @@ export const achievements = [
     icon: FaBiking
   },
   {
-    title: 'Web Studio Founder',
-    description: 'Launched easywebs.uk, helping small businesses establish their online presence with modern web solutions.',
+    title: 'Web Studio Co-Founder',
+    description: 'Co-founded easywebs.uk, helping small businesses establish their online presence with modern web solutions.',
     icon: FaLaptopCode
   },
   {
-    title: 'PADI Diver',
-    description: 'Licensed free diver and scuba diver, exploring up to 30m underwater.',
+    title: 'PADI Certified Diver',
+    description: 'Licensed free diver and scuba diver, exploring marine ecosystems up to 30m underwater.',
     icon: FaWater
   },
   {
-    title: 'Wheelchair Rugby',
-    description: 'Current player for the Harlequins Wheelchair Rugby Team.',
-    icon: FaWheelchair
+    title: 'Full Stack Developer',
+    description: 'Proficient in modern web technologies including React, Node.js, Python, and responsive design.',
+    icon: FaCode
   },
 ];

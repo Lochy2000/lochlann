@@ -1,15 +1,23 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-type Theme = 'light' | 'dark';
+import { 
+  getEffectiveTheme, 
+  applyTheme, 
+  storeTheme, 
+  toggleTheme as toggleThemeUtil,
+  listenForSystemThemeChanges,
+  type Theme 
+} from '@/lib/theme-detection';
 
 interface ThemeContextType {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
 }
 
 const defaultContext: ThemeContextType = {
   theme: 'dark',
   setTheme: () => {},
+  toggleTheme: () => {},
 };
 
 const ThemeContext = createContext<ThemeContextType>(defaultContext);
@@ -25,42 +33,42 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Initialize theme immediately to prevent hydration mismatch
+    if (typeof window === 'undefined') return 'dark';
+    return getEffectiveTheme().theme;
+  });
 
   useEffect(() => {
-    // Get the saved theme from localStorage or use system preference
-    let savedTheme: Theme | null = null;
-    try {
-      savedTheme = localStorage.getItem('theme') as Theme | null;
-      console.log("Theme from localStorage:", savedTheme);
-    } catch (error) {
-      console.error("Error accessing localStorage:", error);
-    }
-    const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
-
-    const initialTheme = savedTheme || systemPreference;
-    setTheme(initialTheme);
+    // Apply theme immediately on mount
+    applyTheme(theme);
     
-    // Apply the theme class to the document
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
-  }, []);
+    // Listen for system theme changes
+    const cleanup = listenForSystemThemeChanges((newSystemTheme) => {
+      const { isSystemTheme } = getEffectiveTheme();
+      if (isSystemTheme) {
+        setTheme(newSystemTheme);
+        applyTheme(newSystemTheme);
+      }
+    });
+    
+    return cleanup;
+  }, [theme]);
 
   const handleThemeChange = (newTheme: Theme) => {
     console.log("Setting theme to:", newTheme);
     setTheme(newTheme);
-    try {
-      localStorage.setItem('theme', newTheme);
-      console.log("Theme set in localStorage:", newTheme);
-    } catch (error) {
-      console.error("Error accessing localStorage:", error);
-    }
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    storeTheme(newTheme);
+    applyTheme(newTheme);
+  };
+
+  const toggleTheme = () => {
+    const newTheme = toggleThemeUtil(theme);
+    handleThemeChange(newTheme);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme: handleThemeChange }}>
+    <ThemeContext.Provider value={{ theme, setTheme: handleThemeChange, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

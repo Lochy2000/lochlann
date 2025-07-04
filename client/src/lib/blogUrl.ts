@@ -12,7 +12,6 @@ export function getBlogUrl(): string {
     return 'http://localhost:5001';
   } else {
     // In production, use the standalone blog URL
-    // This prevents any routing conflicts with the main portfolio
-    return 'https://lochlann-blog.vercel.app';
+    return 'https://lochlann.vercel.app';
   }
 }

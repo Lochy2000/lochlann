@@ -19,10 +19,13 @@ export const experiences = [
     skills: ['WordPress', 'Web Design', 'SEO', 'Client Management', 'Responsive Design'],
     icon: FaLaptopCode,
     iconColor: 'blue',
+    location: 'London, UK',
+    ongoing: true,
     keyPoints: [
-      'Launched and designed multiple client websites',
-      'Specialized in responsive design and SEO optimization',
-      'Built strong client relationships through consultative approach'
+      'Launched and designed multiple client websites including HerEdge.club and frenticfocus.com',
+      'Specialized in responsive design and SEO optimization for better user engagement',
+      'Built strong client relationships through consultative approach and regular communication',
+      'Implemented modern web technologies and performance optimization techniques'
     ]
   },
   {
@@ -33,10 +36,13 @@ export const experiences = [
     skills: ['WordPress', 'UI/UX', 'Client Management', 'Content Strategy', 'JavaScript'],
     icon: FaFilm,
     iconColor: 'purple',
+    location: 'London, UK',
+    ongoing: true,
     keyPoints: [
-      'Lead WordPress website updates and edits',
-      'Collaborate with clients to achieve visual goals',
-      'Optimize website performance and user experience'
+      'Lead WordPress website updates and maintenance for creative media projects',
+      'Collaborate with clients to achieve visual goals and brand consistency',
+      'Optimize website performance and user experience across devices',
+      'Implement content strategy and visual design improvements'
     ]
   },
   {
@@ -47,10 +53,13 @@ export const experiences = [
     skills: ['Coaching', 'Communication', 'Leadership', 'Program Development'],
     icon: FaChalkboardTeacher,
     iconColor: 'green',
+    location: 'Twickenham, UK',
+    ongoing: true,
     keyPoints: [
-      'Lead multiple weekly training sessions',
-      'Focus on technique development and player improvement',
-      'Create inclusive programs for all skill levels'
+      'Lead multiple weekly training sessions for university students of all skill levels',
+      'Focus on technique development and progressive player improvement',
+      'Create inclusive programs that accommodate different abilities and learning styles',
+      'Develop leadership skills through mentoring and coaching methodology'
     ]
   },
   {
