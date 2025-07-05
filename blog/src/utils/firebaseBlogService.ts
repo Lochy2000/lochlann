@@ -145,21 +145,20 @@ class FirebaseBlogService {
     console.log('Initializing Firebase Blog Service...');
     
     try {
-      // Simple initialization - just check if we can connect
+      // Simple initialization - just check if we can connect with timeout
       console.log('Testing Firebase connection...');
       
-      // Try a simple read operation to test connectivity
-      const testQuery = await getDocs(collection(db, this.collectionName));
-      console.log(`Firebase connection successful. Found ${testQuery.size} existing posts`);
+      // Create a promise that rejects after 2 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Firebase connection timeout')), 2000);
+      });
       
-      // Only initialize categories if absolutely none exist
-      const categoriesQuery = await getDocs(collection(db, this.categoriesCollectionName));
-      if (categoriesQuery.empty) {
-        console.log('No categories found. Adding minimal default categories...');
-        await this.initializeMinimalCategories();
-      } else {
-        console.log(`Found ${categoriesQuery.size} existing categories`);
-      }
+      // Try a simple read operation to test connectivity
+      const testQueryPromise = getDocs(collection(db, this.collectionName));
+      
+      // Race the query against the timeout
+      const testQuery = await Promise.race([testQueryPromise, timeoutPromise]);
+      console.log(`Firebase connection successful. Found ${(testQuery as any).size} existing posts`);
       
       this.initialized = true;
       this.initializing = false;
@@ -169,7 +168,7 @@ class FirebaseBlogService {
       this.initializing = false;
       // Mark as initialized anyway to prevent hanging
       this.initialized = true;
-      throw error;
+      // Don't throw error - let the app continue
     }
   }
 

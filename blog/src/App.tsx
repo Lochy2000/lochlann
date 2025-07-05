@@ -49,7 +49,15 @@ const App: React.FC = () => {
     const initializeFirebase = async () => {
       try {
         console.log('Starting Firebase initialization...');
-        await firebaseBlogService.initialize();
+        
+        // Use Promise.race to timeout the initialization quickly
+        const initPromise = firebaseBlogService.initialize();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Firebase initialization timeout')), 3000);
+        });
+        
+        await Promise.race([initPromise, timeoutPromise]);
+        
         if (mounted) {
           console.log('Firebase initialized successfully');
           setFirebaseInitialized(true);
@@ -63,8 +71,8 @@ const App: React.FC = () => {
     };
     
     // Set timeout to force app to load even if Firebase fails
-    // Longer timeout for mobile due to potentially slower connections
-    const timeoutDuration = isMobile ? 15000 : 10000;
+    // Much shorter timeout for better UX
+    const timeoutDuration = 5000; // 5 seconds max
     timeoutId = setTimeout(() => {
       if (mounted && !firebaseInitialized) {
         console.warn(`Firebase initialization timed out after ${timeoutDuration/1000}s, loading app anyway`);
