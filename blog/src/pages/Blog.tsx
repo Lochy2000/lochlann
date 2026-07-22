@@ -8,6 +8,7 @@ import { firebaseBlogService, type BlogPost, type Category } from '../utils/fire
 import ParallaxVideo from '../components/ParallaxVideo';
 import FilterDropdown from '../components/FilterDropdown';
 import { isMobileDevice, getMobileQueryConfig } from '../utils/mobileDetection';
+import { optimizeImageUrl, optimizeVideoUrl } from '../utils/cloudinaryOptimize';
 import '../styles/blog-dropdown-fix.css';
 
 // Animation variants
@@ -163,8 +164,8 @@ const Blog: React.FC = () => {
             tags: Array.isArray(post.tags) ? post.tags : 
                   (typeof post.tags === 'string' ? post.tags.split(',').map(t => t.trim()) : []),
             // Ensure image and coverImage exist
-            image: post.image || post.coverImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
-            coverImage: post.coverImage || post.image || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
+            image: post.image || post.coverImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200',
+            coverImage: post.coverImage || post.image || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200',
             // Ensure author exists
             author: post.author || {
               name: 'Lochlann O\'Higgins',
@@ -281,7 +282,7 @@ const Blog: React.FC = () => {
       
       {/* Parallax Video Background */}
       <ParallaxVideo
-        videoSrc="https://res.cloudinary.com/dpw2txejq/video/upload/v1747743810/lofi-bg_llx3on.mp4"
+        videoSrc={optimizeVideoUrl("https://res.cloudinary.com/dpw2txejq/video/upload/v1747743810/lofi-bg_llx3on.mp4")}
         overlayOpacity={0.5}
       />
       
@@ -379,8 +380,8 @@ const Blog: React.FC = () => {
                   >
                     <article className="bg-white/70 dark:bg-lofi-terminal/70 h-full rounded-xl overflow-hidden shadow-neon hover:shadow-neon-lg transform hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
                       <div className="h-52 overflow-hidden relative">
-                        <img 
-                          src={post.coverImage || ('image' in post ? post.image : '')}
+                        <img
+                          src={optimizeImageUrl(post.coverImage || ('image' in post ? post.image : ''), 700)}
                           alt={post.title}
                           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                         />
@@ -475,9 +476,10 @@ const Blog: React.FC = () => {
                     >
                       <article className="lofi-card h-full flex flex-col bg-white/70 dark:bg-lofi-terminal/70 backdrop-blur-sm shadow-neon hover:shadow-neon-lg">
                         <div className="h-44 overflow-hidden rounded-lg mb-3 relative">
-                          <img 
-                            src={post.coverImage || ('image' in post ? post.image : '')}
+                          <img
+                            src={optimizeImageUrl(post.coverImage || ('image' in post ? post.image : ''), 500)}
                             alt={post.title}
+                            loading="lazy"
                             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                           />
                           <div className="absolute top-3 left-3">

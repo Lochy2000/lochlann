@@ -5,6 +5,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaCalendarAlt, FaClock, FaTag, FaArrowLeft, FaShareAlt, FaTwitter, FaLinkedin, FaFacebook, FaCode, FaCoffee } from 'react-icons/fa';
 import { firebaseBlogService, type BlogPost as BlogPostType } from '../utils/firebaseBlogService';
+import { optimizeImageUrl } from '../utils/cloudinaryOptimize';
 
 interface AuthorType {
   name: string;
@@ -361,8 +362,8 @@ const BlogPost: React.FC = () => {
             tags: Array.isArray(post.tags) ? post.tags : 
                   (typeof post.tags === 'string' ? post.tags.split(',').map(t => t.trim()) : []),
             // Ensure image and coverImage exist
-            image: post.image || post.coverImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
-            coverImage: post.coverImage || post.image || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085',
+            image: post.image || post.coverImage || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200',
+            coverImage: post.coverImage || post.image || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200',
             // Ensure author exists
             author: post.author || {
               name: 'Lochlann O\'Higgins',
@@ -454,9 +455,9 @@ const BlogPost: React.FC = () => {
         {/* Hero Section */}
         <div className="w-full h-[60vh] relative">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-dark/90 z-10"></div>
-          <img 
-            src={post.coverImage || ('image' in post ? post.image : '')} 
-            alt={post.title} 
+          <img
+            src={optimizeImageUrl(post.coverImage || ('image' in post ? post.image : ''), 1600)}
+            alt={post.title}
             className="w-full h-full object-cover"
           />
           <div className="absolute bottom-0 left-0 right-0 container mx-auto px-4 py-12 z-20">
@@ -475,8 +476,8 @@ const BlogPost: React.FC = () => {
               
               <div className="flex flex-wrap items-center text-sm text-white/80 gap-4">
                 <div className="flex items-center">
-                  <img 
-                    src={author.image}
+                  <img
+                    src={optimizeImageUrl(author.image, 96)}
                     alt={author.name}
                     className="w-6 h-6 rounded-full mr-2 border border-white/20"
                   />
@@ -528,9 +529,10 @@ const BlogPost: React.FC = () => {
                 {/* Author Bio */}
                 <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
                   <div className="flex items-start md:items-center flex-col md:flex-row gap-4">
-                    <img 
-                      src={author.image}
+                    <img
+                      src={optimizeImageUrl(author.image, 128)}
                       alt={author.name}
+                      loading="lazy"
                       className="w-16 h-16 rounded-full border-2 border-white dark:border-slate-700 shadow-lofi"
                     />
                     <div>
@@ -601,9 +603,10 @@ const BlogPost: React.FC = () => {
                         className="block group"
                       >
                         <div className="flex gap-3">
-                          <img 
-                            src={relatedPost.coverImage || ('image' in relatedPost ? relatedPost.image : '')}
+                          <img
+                            src={optimizeImageUrl(relatedPost.coverImage || ('image' in relatedPost ? relatedPost.image : ''), 160)}
                             alt={relatedPost.title}
+                            loading="lazy"
                             className="w-20 h-20 object-cover rounded-lg shadow-lofi"
                           />
                           <div>

@@ -5,6 +5,7 @@ import ThemeToggle from './ThemeToggle';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { isMobileDevice, debounce } from '../utils/mobileDetection';
+import { optimizeImageUrl } from '../utils/cloudinaryOptimize';
 
 const BlogHeader: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -100,7 +101,7 @@ const BlogHeader: React.FC = () => {
           className="flex items-center space-x-2 z-50"
         >
           <img
-            src="https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png"
+            src={optimizeImageUrl("https://res.cloudinary.com/dpw2txejq/image/upload/v1746605161/lego-loch_r7voyr.png", 96)}
             alt="Profile image"
             className="w-10 h-10 rounded-full object-cover"
           />

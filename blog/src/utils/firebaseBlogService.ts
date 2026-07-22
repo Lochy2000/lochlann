@@ -37,6 +37,39 @@ const db = getFirestore(app);
 // Note: Skipping offline persistence setup to avoid browser storage issues in development
 console.log('Firestore initialized without persistence for better compatibility');
 
+// --- Lightweight REST helpers for field-limited queries --------------------
+// The Firestore client SDK always returns whole documents. The REST API's
+// runQuery supports a field mask (`select`), which lets list/grid views skip
+// downloading the full article body (`content`) - some posts have several
+// hundred KB of pasted-in base64 images inline in that field, which list
+// views never render.
+function decodeFirestoreValue(value: any): any {
+  if (value == null) return undefined;
+  if ('stringValue' in value) return value.stringValue;
+  if ('booleanValue' in value) return value.booleanValue;
+  if ('integerValue' in value) return Number(value.integerValue);
+  if ('doubleValue' in value) return value.doubleValue;
+  if ('nullValue' in value) return null;
+  if ('timestampValue' in value) return value.timestampValue;
+  if ('arrayValue' in value) return (value.arrayValue.values || []).map(decodeFirestoreValue);
+  if ('mapValue' in value) return decodeFirestoreFields(value.mapValue.fields || {});
+  return undefined;
+}
+
+function decodeFirestoreFields(fields: Record<string, any>): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const [key, value] of Object.entries(fields)) {
+    out[key] = decodeFirestoreValue(value);
+  }
+  return out;
+}
+
+const POST_SUMMARY_FIELDS = [
+  'title', 'slug', 'excerpt', 'image', 'coverImage', 'date', 'readTime',
+  'category', 'categorySlug', 'categoryColor', 'tags', 'published',
+  'createdAt', 'updatedAt', 'featured', 'relatedPosts', 'author',
+];
+
 // Blog Post type definition
 export interface BlogPost {
   id: string;
@@ -144,6 +177,42 @@ class FirebaseBlogService {
     this.initializing = false;
   }
 
+  // Fetches post cards for list/grid views via a field-masked REST query, so
+  // the (sometimes multi-hundred-KB) `content` field never gets downloaded
+  // for a view that doesn't render it.
+  private async fetchPostSummaries(): Promise<BlogPost[]> {
+    const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+    const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+
+    const response = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          structuredQuery: {
+            select: { fields: POST_SUMMARY_FIELDS.map(fieldPath => ({ fieldPath })) },
+            from: [{ collectionId: this.collectionName }],
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Firestore summary query failed: ${response.status}`);
+    }
+
+    const rows: any[] = await response.json();
+
+    return rows
+      .filter(row => row.document)
+      .map(row => {
+        const id = row.document.name.split('/').pop();
+        const data = decodeFirestoreFields(row.document.fields || {});
+        return { id, content: '', ...data } as BlogPost;
+      });
+  }
+
   // Minimal category initialization - much faster
   async initializeMinimalCategories(): Promise<void> {
     try {
@@ -200,23 +269,21 @@ class FirebaseBlogService {
     
     try {
       console.log('Fetching published blog posts');
-      
-      // Just get all posts first
-      console.log('Fetching all posts...');
-      const allDocsSnapshot = await getDocs(collection(db, this.collectionName));
-      
-      const allPosts = allDocsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as BlogPost[];
-      
+
+      let allPosts: BlogPost[];
+      try {
+        allPosts = await this.fetchPostSummaries();
+      } catch (summaryError) {
+        console.warn('Summary query failed, falling back to full document fetch:', summaryError);
+        const allDocsSnapshot = await getDocs(collection(db, this.collectionName));
+        allPosts = allDocsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as BlogPost[];
+      }
+
       console.log(`Found ${allPosts.length} total posts in the collection`);
-      
-      // Debug: Log each post with its published status
-      allPosts.forEach(post => {
-        console.log(`Post: ${post.title}, Published: ${post.published}, Featured: ${post.featured}, Date: ${post.date}`);
-      });
-      
+
       // Even if a post doesn't have the published field, include it
       const publishedPosts = allPosts.filter(post => post.published !== false);
       console.log(`After filtering, found ${publishedPosts.length} published posts`);
