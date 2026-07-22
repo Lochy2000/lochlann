@@ -10,17 +10,18 @@ A modern, responsive personal portfolio website built with React, TypeScript, an
 
 ## Screenshots
 
-![Hero Section](docs/screenshots/hero-section.png)
 *Homepage hero section with animated tech background*
+![image](https://github.com/user-attachments/assets/6f3d4bbc-511f-4eaf-8812-9b5b3302a170)
 
-![About Page](docs/screenshots/about-page.png)
+
 *About page showcasing personal journey and achievements*
+![image](https://github.com/user-attachments/assets/0078ce3b-c3f9-470f-93fb-0ebb71a12192)
 
-![Experience Timeline](docs/screenshots/experience-timeline.png)
 *Interactive experience timeline with hover effects*
+![image](https://github.com/user-attachments/assets/69c63fd0-5060-4308-9f25-551d5bda6e96)
 
-![Portfolio Grid](docs/screenshots/portfolio-grid.png)
 *Portfolio section with GitHub-inspired cards*
+![image](https://github.com/user-attachments/assets/1b0cc60c-c1ce-4d2d-9821-dec9b0bdb477)
 
 ## Features
 
