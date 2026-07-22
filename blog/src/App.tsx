@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
@@ -12,7 +12,6 @@ import LoginPage from './pages/Auth/LoginPage';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import FirebaseDebug from './components/FirebaseDebug';
 import { Helmet } from 'react-helmet';
-import { firebaseBlogService } from './utils/firebaseBlogService';
 import { isMobileDevice, getMobileQueryConfig } from './utils/mobileDetection';
 import './utils/authDomainHelper';
 
@@ -32,80 +31,14 @@ const queryClient = new QueryClient({
 });
 
 const App: React.FC = () => {
-  const [firebaseInitialized, setFirebaseInitialized] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  
   // Detect mobile device on mount
   useEffect(() => {
-    setIsMobile(isMobileDevice());
     console.log('Device type detected:', isMobileDevice() ? 'Mobile' : 'Desktop');
   }, []);
-  
-  // Initialize Firebase once when App mounts
-  useEffect(() => {
-    let mounted = true;
-    let timeoutId: NodeJS.Timeout;
-    
-    const initializeFirebase = async () => {
-      try {
-        console.log('Starting Firebase initialization...');
-        
-        // Use Promise.race to timeout the initialization quickly
-        const initPromise = firebaseBlogService.initialize();
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Firebase initialization timeout')), 3000);
-        });
-        
-        await Promise.race([initPromise, timeoutPromise]);
-        
-        if (mounted) {
-          console.log('Firebase initialized successfully');
-          setFirebaseInitialized(true);
-        }
-      } catch (error) {
-        if (mounted) {
-          console.error('Firebase initialization failed:', error);
-          setFirebaseInitialized(true); // Still allow app to load
-        }
-      }
-    };
-    
-    // Set timeout to force app to load even if Firebase fails
-    // Much shorter timeout for better UX
-    const timeoutDuration = 5000; // 5 seconds max
-    timeoutId = setTimeout(() => {
-      if (mounted && !firebaseInitialized) {
-        console.warn(`Firebase initialization timed out after ${timeoutDuration/1000}s, loading app anyway`);
-        setFirebaseInitialized(true);
-      }
-    }, timeoutDuration);
-    
-    initializeFirebase();
-    
-    return () => {
-      mounted = false;
-      clearTimeout(timeoutId);
-    };
-  }, [firebaseInitialized, isMobile]);
-  
-  // For debugging
-  console.log('Blog App rendered');
-  
+
   // Determine if we need a basename - always use empty for standalone
   const basename = "";
-  
-  // Show loading until Firebase is initialized
-  if (!firebaseInitialized) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-900">
-        <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-purple-500 border-t-transparent animate-spin mx-auto mb-4"></div>
-          <p className="text-white">Initializing blog...</p>
-        </div>
-      </div>
-    );
-  }
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

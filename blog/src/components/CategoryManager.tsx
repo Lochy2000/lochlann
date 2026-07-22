@@ -37,7 +37,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ onCategoryCreated }) 
   // Fetch categories
   const { data: categories, isLoading } = useQuery({
     queryKey: ['categories'],
-    queryFn: () => firebaseBlogService.getCategories()
+    queryFn: () => firebaseBlogService.getCategories(true)
   });
 
   // Create category mutation

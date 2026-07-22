@@ -133,43 +133,15 @@ class FirebaseBlogService {
   private initialized = false;
   private initializing = false;
   
-  // Initialize the database with sample data if empty
+  // Mark the service ready. `initializeApp`/`getFirestore` above are already
+  // synchronous, so there's no need to fetch data here just to "test" the
+  // connection - the first real query (getPublishedPosts, getCategories, etc.)
+  // surfaces connectivity errors on its own.
   async initialize() {
-    // Prevent multiple simultaneous initializations
-    if (this.initialized || this.initializing) {
-      console.log('Firebase already initialized or initializing, skipping...');
-      return;
-    }
-    
+    if (this.initialized || this.initializing) return;
     this.initializing = true;
-    console.log('Initializing Firebase Blog Service...');
-    
-    try {
-      // Simple initialization - just check if we can connect with timeout
-      console.log('Testing Firebase connection...');
-      
-      // Create a promise that rejects after 2 seconds
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Firebase connection timeout')), 2000);
-      });
-      
-      // Try a simple read operation to test connectivity
-      const testQueryPromise = getDocs(collection(db, this.collectionName));
-      
-      // Race the query against the timeout
-      const testQuery = await Promise.race([testQueryPromise, timeoutPromise]);
-      console.log(`Firebase connection successful. Found ${(testQuery as any).size} existing posts`);
-      
-      this.initialized = true;
-      this.initializing = false;
-      console.log('Firebase Blog Service initialized successfully');
-    } catch (error) {
-      console.error('Error initializing blog service:', error);
-      this.initializing = false;
-      // Mark as initialized anyway to prevent hanging
-      this.initialized = true;
-      // Don't throw error - let the app continue
-    }
+    this.initialized = true;
+    this.initializing = false;
   }
 
   // Minimal category initialization - much faster
@@ -547,13 +519,19 @@ class FirebaseBlogService {
   // ========== CATEGORY MANAGEMENT METHODS ==========
   
   // Get all categories
-  async getCategories(): Promise<Category[]> {
+  // withCounts fires one extra Firestore query per category, so only pass
+  // true where postCount is actually displayed (e.g. CategoryManager).
+  async getCategories(withCounts = false): Promise<Category[]> {
     try {
       const querySnapshot = await getDocs(collection(db, this.categoriesCollectionName));
       const categories = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Category[];
+
+      if (!withCounts) {
+        return categories.sort((a, b) => a.name.localeCompare(b.name));
+      }
 
       // Calculate post count for each category
       const categoriesWithCount = await Promise.all(
