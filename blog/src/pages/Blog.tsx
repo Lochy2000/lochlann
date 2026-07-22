@@ -264,13 +264,16 @@ const Blog: React.FC = () => {
     setCurrentPage(1);
   }, [selectedCategory, selectedSort, selectedFilter, searchQuery]);
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-      </div>
-    );
-  }
+  // Keep the loading overlay up for a minimum stretch so the background
+  // video (mounted below, unconditionally) gets a head start downloading
+  // while it's hidden, instead of popping in visibly after the fact.
+  const [minLoadElapsed, setMinLoadElapsed] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setMinLoadElapsed(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const showLoadingOverlay = isLoading || !minLoadElapsed;
 
   return (
     <>
@@ -279,14 +282,21 @@ const Blog: React.FC = () => {
         <meta name="description" content="Explore tutorials, insights, and musings on web development, databases, AI, and lo-fi aesthetics from a junior developer's perspective." />
         <meta name="keywords" content="web development, coding tutorials, javascript, typescript, react, databases, developer blog, lo-fi coding" />
       </Helmet>
-      
-      {/* Parallax Video Background */}
+
+      {/* Parallax Video Background - mounted immediately so it starts
+          downloading during the loading overlay below, not after it */}
       <ParallaxVideo
         videoSrc={optimizeVideoUrl("https://res.cloudinary.com/dpw2txejq/video/upload/v1747743810/lofi-bg_llx3on.mp4")}
         overlayOpacity={0.5}
       />
-      
-      <div className="mt-16 md:mt-12">
+
+      {showLoadingOverlay && (
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-slate-900">
+          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+        </div>
+      )}
+
+      <div className={`mt-16 md:mt-12 ${showLoadingOverlay ? 'invisible' : ''}`}>
         {/* Hero Section - Only show on home page */}
         {!categoryParam && !tagParam && !searchQuery && (
           <motion.section 

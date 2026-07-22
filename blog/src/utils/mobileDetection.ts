@@ -1,6 +1,7 @@
 /**
  * Mobile detection utilities for handling mobile-specific behaviors
  */
+import type { UseQueryOptions } from '@tanstack/react-query';
 
 // Check if device is mobile based on screen size and user agent
 export const isMobileDevice = (): boolean => {
@@ -44,7 +45,15 @@ export const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
 };
 
 // Mobile-specific configurations
-export const getMobileQueryConfig = () => {
+//
+// Explicit return type matters here: without it, TypeScript infers a union
+// of the two branches' shapes (they don't share all properties), which
+// widens `refetchInterval: false` to plain `boolean` - not assignable to
+// react-query's `number | false | (...)`. That single widening was enough
+// to make every `useQuery({ ...getMobileQueryConfig() })` call fail to
+// type-check, which in turn made TS give up on inferring the query's data
+// type wherever it was used downstream.
+export const getMobileQueryConfig = (): Partial<UseQueryOptions<unknown, Error>> => {
   if (!isMobileDevice()) {
     return {
       staleTime: 5 * 60 * 1000, // 5 minutes
