@@ -1,7 +1,6 @@
 /**
  * Mobile detection utilities for handling mobile-specific behaviors
  */
-import type { UseQueryOptions } from '@tanstack/react-query';
 
 // Check if device is mobile based on screen size and user agent
 export const isMobileDevice = (): boolean => {
@@ -46,14 +45,29 @@ export const getDeviceType = (): 'mobile' | 'tablet' | 'desktop' => {
 
 // Mobile-specific configurations
 //
-// Explicit return type matters here: without it, TypeScript infers a union
-// of the two branches' shapes (they don't share all properties), which
-// widens `refetchInterval: false` to plain `boolean` - not assignable to
-// react-query's `number | false | (...)`. That single widening was enough
-// to make every `useQuery({ ...getMobileQueryConfig() })` call fail to
-// type-check, which in turn made TS give up on inferring the query's data
-// type wherever it was used downstream.
-export const getMobileQueryConfig = (): Partial<UseQueryOptions<unknown, Error>> => {
+// This interface deliberately does NOT reuse react-query's UseQueryOptions
+// (even a Partial of it): that type includes `queryFn`/`queryKey` as
+// optional keys, and spreading it into a useQuery({ ...config, queryFn })
+// call confuses TypeScript's generic inference for the query's data type -
+// every caller's `data` ends up typed as `{}` instead of the real shape.
+// A narrow interface with only the fields we actually set avoids that.
+//
+// The explicit return type also matters on its own: without it, TypeScript
+// infers a union of the two branches below (they don't share all
+// properties), which widens `refetchInterval: false` to plain `boolean` -
+// not assignable to react-query's `number | false`.
+interface MobileQueryConfig {
+  staleTime: number;
+  gcTime: number;
+  retry: number;
+  refetchOnWindowFocus: boolean;
+  refetchOnMount: boolean;
+  refetchOnReconnect: boolean;
+  refetchInterval?: number | false;
+  notifyOnChangeProps?: Array<'data' | 'error' | 'isLoading'>;
+}
+
+export const getMobileQueryConfig = (): MobileQueryConfig => {
   if (!isMobileDevice()) {
     return {
       staleTime: 5 * 60 * 1000, // 5 minutes

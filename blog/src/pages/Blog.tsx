@@ -109,6 +109,7 @@ const Blog: React.FC = () => {
   
   // Fetch categories from Firebase with mobile-optimized settings
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery({
+    ...mobileQueryConfig, // Use mobile-optimized settings
     queryKey: ['categories'],
     queryFn: async () => {
       console.log('Fetching categories for blog filter...');
@@ -141,11 +142,11 @@ const Blog: React.FC = () => {
         ];
       }
     },
-    ...mobileQueryConfig, // Use mobile-optimized settings
   });
 
   // Fetch blog posts from Firebase with mobile-optimized settings
   const { data: blogPosts, isLoading, error } = useQuery({
+    ...mobileQueryConfig, // Use mobile-optimized settings
     queryKey: ['blog-posts'],
     queryFn: async () => {
       console.log('Fetching blog posts from Firebase');
@@ -187,7 +188,6 @@ const Blog: React.FC = () => {
         return mockBlogPosts;
       }
     },
-    ...mobileQueryConfig, // Use mobile-optimized settings
   });
 
   // Set tag filter from URL params on load
